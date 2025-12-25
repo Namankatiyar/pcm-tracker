@@ -227,36 +227,49 @@ body {
   font-size: 1.0625rem;
 }
 
-.overall-progress-card {
+.dashboard-stats-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.overall-progress-card, .exam-countdown-card {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: var(--border-radius);
   padding: 2rem;
   box-shadow: var(--shadow-lg), var(--shadow-glow);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
+/* Overall Progress Card Adjustments */
 .overall-content {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
 }
 
 .overall-text h2 {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
 }
 
 .overall-text p {
   color: var(--text-secondary);
+  font-size: 0.875rem;
 }
 
 .overall-stats {
   display: flex;
-  gap: 3rem;
+  justify-content: space-between;
   padding-top: 1.5rem;
   border-top: 1px solid var(--border);
+  gap: 1rem;
 }
 
 .stat {
@@ -264,17 +277,109 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 0.25rem;
+  flex: 1;
 }
 
 .stat-value {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--accent);
 }
 
 .stat-label {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
+  text-align: center;
+}
+
+/* Exam Countdown Card */
+.countdown-header h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.countdown-header p {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.countdown-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 1rem;
+  flex: 1;
+}
+
+.days-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+}
+
+.days-value {
+  font-size: 3.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent), #a855f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.days-label {
+  font-size: 1rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-top: 0.5rem;
+}
+
+.no-date-message {
+  color: var(--text-muted);
+  font-style: italic;
+  text-align: center;
+  padding: 1rem;
+}
+
+.date-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.date-input-container label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.date-input-container input[type="date"] {
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius-sm);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  transition: all var(--transition-fast);
+}
+
+.date-input-container input[type="date"]:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-light);
+}
+
+/* Responsive update */
+@media (max-width: 900px) {
+  .dashboard-stats-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 .subject-cards {

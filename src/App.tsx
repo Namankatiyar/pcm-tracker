@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Header } from './components/Header';
 import { Dashboard } from './components/Dashboard';
 import { SubjectPage } from './components/SubjectPage';
@@ -20,6 +20,16 @@ function App() {
     const [currentView, setCurrentView] = useLocalStorage<View>('jee-tracker-view', 'dashboard');
     const [progress, setProgress] = useLocalStorage<AppProgress>('jee-tracker-progress', initialProgress);
     const [accentColor, setAccentColor] = useLocalStorage<string>('jee-tracker-accent', '#6366f1');
+    const [customColumns, setCustomColumns] = useLocalStorage<Record<Subject, string[]>>('jee-tracker-custom-columns', {
+        physics: [],
+        chemistry: [],
+        maths: []
+    });
+    const [excludedColumns, setExcludedColumns] = useLocalStorage<Record<Subject, string[]>>('jee-tracker-excluded-columns', {
+        physics: [],
+        chemistry: [],
+        maths: []
+    });
 
     const [subjectData, setSubjectData] = useState<Record<Subject, SubjectData | null>>({
         physics: null,
@@ -51,16 +61,37 @@ function App() {
     // Apply accent color
     useEffect(() => {
         document.documentElement.style.setProperty('--accent', accentColor);
-        // Simple approximation for light variant: use the color with opacity
-        // We can't easily convert hex to rgba here without a helper, but we can use color-mix if supported 
-        // or just rely on opacity in CSS if it was using variables.
-        // Current CSS uses rgba(99, 102, 241, 0.1).
-        // Let's try to set --accent-light using color-mix which is widely supported now
         document.documentElement.style.setProperty('--accent-light', `color-mix(in srgb, ${accentColor}, transparent 90%)`);
         document.documentElement.style.setProperty('--accent-hover', `color-mix(in srgb, ${accentColor}, black 10%)`);
     }, [accentColor]);
 
-    const { physicsProgress, chemistryProgress, mathsProgress, overallProgress, calculateSubjectProgress } = useProgress(progress, subjectData);
+    // Merge CSV data with custom columns and filter excluded ones
+    const mergedSubjectData = useMemo(() => {
+        const merged: Record<Subject, SubjectData | null> = { physics: null, chemistry: null, maths: null };
+        (['physics', 'chemistry', 'maths'] as Subject[]).forEach(subject => {
+            const data = subjectData[subject];
+            if (!data) return;
+            
+            const custom = customColumns[subject] || [];
+            const excluded = excludedColumns[subject] || [];
+            
+            // Prevent duplicates and filter excluded
+            const uniqueCustom = custom.filter(c => !data.materialNames.includes(c));
+            const allMaterials = [...data.materialNames, ...uniqueCustom].filter(m => !excluded.includes(m));
+            
+            merged[subject] = {
+                ...data,
+                materialNames: allMaterials,
+                chapters: data.chapters.map(c => ({
+                    ...c,
+                    materials: allMaterials
+                }))
+            };
+        });
+        return merged;
+    }, [subjectData, customColumns, excludedColumns]);
+
+    const { physicsProgress, chemistryProgress, mathsProgress, overallProgress, calculateSubjectProgress } = useProgress(progress, mergedSubjectData);
 
     const handleToggleMaterial = useCallback((subject: Subject, chapterSerial: number, material: string) => {
         setProgress(prev => {
@@ -101,6 +132,39 @@ function App() {
         });
     }, [setProgress]);
 
+    const handleAddColumn = useCallback((subject: Subject, columnName: string) => {
+        if (!columnName.trim()) return;
+        // If it was excluded previously, remove from excluded list
+        if (excludedColumns[subject]?.includes(columnName.trim())) {
+             setExcludedColumns(prev => ({
+                ...prev,
+                [subject]: prev[subject].filter(c => c !== columnName.trim())
+            }));
+            return;
+        }
+
+        setCustomColumns(prev => ({
+            ...prev,
+            [subject]: [...(prev[subject] || []), columnName.trim()]
+        }));
+    }, [excludedColumns, setExcludedColumns, setCustomColumns]);
+
+    const handleRemoveColumn = useCallback((subject: Subject, columnName: string) => {
+        const isCustom = customColumns[subject]?.includes(columnName);
+        
+        if (isCustom) {
+            setCustomColumns(prev => ({
+                ...prev,
+                [subject]: prev[subject].filter(c => c !== columnName)
+            }));
+        } else {
+            setExcludedColumns(prev => ({
+                ...prev,
+                [subject]: [...(prev[subject] || []), columnName]
+            }));
+        }
+    }, [customColumns, setCustomColumns, setExcludedColumns]);
+
     const handleThemeToggle = () => {
         setTheme(prev => prev === 'light' ? 'dark' : 'light');
     };
@@ -113,7 +177,7 @@ function App() {
                     chemistryProgress={chemistryProgress}
                     mathsProgress={mathsProgress}
                     overallProgress={overallProgress}
-                    subjectData={subjectData}
+                    subjectData={mergedSubjectData}
                     onNavigate={setCurrentView}
                 />
             );
@@ -123,11 +187,13 @@ function App() {
         return (
             <SubjectPage
                 subject={subject}
-                data={subjectData[subject]}
+                data={mergedSubjectData[subject]}
                 progress={progress[subject]}
                 subjectProgress={calculateSubjectProgress(subject)}
                 onToggleMaterial={(serial, material) => handleToggleMaterial(subject, serial, material)}
                 onSetPriority={(serial, priority) => handleSetPriority(subject, serial, priority)}
+                onAddMaterial={(name) => handleAddColumn(subject, name)}
+                onRemoveMaterial={(name) => handleRemoveColumn(subject, name)}
             />
         );
     };

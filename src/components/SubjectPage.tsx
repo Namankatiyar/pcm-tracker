@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { Subject, SubjectData, SubjectProgress, Priority } from '../types';
 import { ChapterRow } from './ChapterRow';
 import { ProgressBar } from './ProgressBar';
+import { ConfirmationModal } from './ConfirmationModal';
 
 interface SubjectPageProps {
     subject: Subject;
@@ -9,6 +11,8 @@ interface SubjectPageProps {
     subjectProgress: number;
     onToggleMaterial: (chapterSerial: number, material: string) => void;
     onSetPriority: (chapterSerial: number, priority: Priority) => void;
+    onAddMaterial?: (name: string) => void;
+    onRemoveMaterial?: (name: string) => void;
 }
 
 const subjectConfig: Record<Subject, { label: string; icon: string; color: string }> = {
@@ -23,9 +27,15 @@ export function SubjectPage({
     progress,
     subjectProgress,
     onToggleMaterial,
-    onSetPriority
+    onSetPriority,
+    onAddMaterial,
+    onRemoveMaterial
 }: SubjectPageProps) {
     const config = subjectConfig[subject];
+    const [deleteModalState, setDeleteModalState] = useState<{ isOpen: boolean; material: string | null }>({
+        isOpen: false,
+        material: null
+    });
 
     if (!data) {
         return (
@@ -36,6 +46,21 @@ export function SubjectPage({
         );
     }
 
+    const handleAddMaterialClick = () => {
+        if (!onAddMaterial) return;
+        const name = window.prompt("Enter the name of the new study material (e.g., 'YouTube', 'Notes'):");
+        if (name && name.trim()) {
+            onAddMaterial(name.trim());
+        }
+    };
+
+    const confirmDelete = () => {
+        if (onRemoveMaterial && deleteModalState.material) {
+            onRemoveMaterial(deleteModalState.material);
+        }
+        setDeleteModalState({ isOpen: false, material: null });
+    };
+
     return (
         <div className="subject-page">
             <div className="subject-header">
@@ -43,7 +68,18 @@ export function SubjectPage({
                     <span className="subject-icon-large">{config.icon}</span>
                     <div>
                         <h1>{config.label}</h1>
-                        <p>{data.chapters.length} Chapters • {data.materialNames.length} Study Materials</p>
+                        <p>
+                            {data.chapters.length} Chapters • {data.materialNames.length} Study Materials
+                            {onAddMaterial && (
+                                <button 
+                                    className="add-material-btn"
+                                    onClick={handleAddMaterialClick}
+                                    title="Add new study material column"
+                                >
+                                    + Add
+                                </button>
+                            )}
+                        </p>
                     </div>
                 </div>
                 <div className="subject-progress-summary">
@@ -58,7 +94,20 @@ export function SubjectPage({
                             <th className="serial-header">#</th>
                             <th className="chapter-header">Chapter</th>
                             {data.materialNames.map((material) => (
-                                <th key={material} className="material-header">{material}</th>
+                                <th key={material} className="material-header">
+                                    <div className="material-header-content">
+                                        <span>{material}</span>
+                                        {onRemoveMaterial && (
+                                            <button 
+                                                className="remove-material-btn"
+                                                onClick={() => setDeleteModalState({ isOpen: true, material })}
+                                                title="Remove column"
+                                            >
+                                                ×
+                                            </button>
+                                        )}
+                                    </div>
+                                </th>
                             ))}
                             <th className="priority-header">Priority</th>
                         </tr>
@@ -99,6 +148,14 @@ export function SubjectPage({
                     </div>
                 </div>
             </div>
+
+            <ConfirmationModal 
+                isOpen={deleteModalState.isOpen}
+                title="Remove Study Material"
+                message={`Are you sure you want to remove the '${deleteModalState.material}' column? This will hide it from your view.`}
+                onConfirm={confirmDelete}
+                onCancel={() => setDeleteModalState({ isOpen: false, material: null })}
+            />
         </div>
     );
 }

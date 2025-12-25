@@ -19,7 +19,7 @@ export function Header({ currentView, onNavigate, theme, onThemeToggle }: Header
         <header className="header">
             <div className="header-content">
                 <div className="logo">
-                    <span className="logo-icon">🎯</span>
+
                     <span className="logo-text">JEE Tracker</span>
                 </div>
 

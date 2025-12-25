@@ -19,6 +19,7 @@ function App() {
     const [theme, setTheme] = useLocalStorage<'light' | 'dark'>('jee-tracker-theme', 'dark');
     const [currentView, setCurrentView] = useLocalStorage<View>('jee-tracker-view', 'dashboard');
     const [progress, setProgress] = useLocalStorage<AppProgress>('jee-tracker-progress', initialProgress);
+    const [accentColor, setAccentColor] = useLocalStorage<string>('jee-tracker-accent', '#6366f1');
 
     const [subjectData, setSubjectData] = useState<Record<Subject, SubjectData | null>>({
         physics: null,
@@ -46,6 +47,18 @@ function App() {
     useEffect(() => {
         document.documentElement.setAttribute('data-theme', theme);
     }, [theme]);
+
+    // Apply accent color
+    useEffect(() => {
+        document.documentElement.style.setProperty('--accent', accentColor);
+        // Simple approximation for light variant: use the color with opacity
+        // We can't easily convert hex to rgba here without a helper, but we can use color-mix if supported 
+        // or just rely on opacity in CSS if it was using variables.
+        // Current CSS uses rgba(99, 102, 241, 0.1).
+        // Let's try to set --accent-light using color-mix which is widely supported now
+        document.documentElement.style.setProperty('--accent-light', `color-mix(in srgb, ${accentColor}, transparent 90%)`);
+        document.documentElement.style.setProperty('--accent-hover', `color-mix(in srgb, ${accentColor}, black 10%)`);
+    }, [accentColor]);
 
     const { physicsProgress, chemistryProgress, mathsProgress, overallProgress, calculateSubjectProgress } = useProgress(progress, subjectData);
 
@@ -126,6 +139,8 @@ function App() {
                 onNavigate={setCurrentView}
                 theme={theme}
                 onThemeToggle={handleThemeToggle}
+                accentColor={accentColor}
+                onAccentChange={setAccentColor}
             />
             <main className="main-content">
                 {renderContent()}

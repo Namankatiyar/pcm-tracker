@@ -1,10 +1,11 @@
 import confetti from 'canvas-confetti';
 
-export function triggerConfetti() {
+export function triggerConfetti(accentColor: string = '#6366f1') {
     const duration = 2000;
     const end = Date.now() + duration;
 
-    const colors = ['#6366f1', '#8b5cf6', '#a855f7', '#22c55e', '#eab308'];
+    // Use the accent color along with some festive defaults
+    const colors = [accentColor, '#ffffff', '#FFD700'];
 
     (function frame() {
         confetti({

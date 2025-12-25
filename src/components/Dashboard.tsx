@@ -22,9 +22,9 @@ export function Dashboard({
     const [examDate, setExamDate] = useLocalStorage<string>('jee-exam-date', '');
 
     const subjects: { key: Subject; label: string; icon: string; progress: number; color: string }[] = [
-        { key: 'physics', label: 'Physics', icon: '⚛️', progress: physicsProgress, color: '#6366f1' },
-        { key: 'chemistry', label: 'Chemistry', icon: '🧪', progress: chemistryProgress, color: '#10b981' },
-        { key: 'maths', label: 'Maths', icon: '📐', progress: mathsProgress, color: '#f59e0b' },
+        { key: 'physics', label: 'Physics', icon: '⚛️', progress: physicsProgress, color: 'var(--accent)' },
+        { key: 'chemistry', label: 'Chemistry', icon: '🧪', progress: chemistryProgress, color: 'var(--accent)' },
+        { key: 'maths', label: 'Maths', icon: '📐', progress: mathsProgress, color: 'var(--accent)' },
     ];
 
     const getChapterStats = (subject: Subject) => {

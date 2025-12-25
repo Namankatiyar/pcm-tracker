@@ -28,7 +28,8 @@ export function ChapterRow({
     useEffect(() => {
         const prevCompleted = prevCompletedRef.current;
         if (isFullyCompleted && prevCompleted < materialNames.length && prevCompleted > 0) {
-            triggerConfetti();
+            const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#6366f1';
+            triggerConfetti(accentColor);
         }
         prevCompletedRef.current = completedCount;
     }, [completedCount, isFullyCompleted, materialNames.length]);

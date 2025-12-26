@@ -25,6 +25,15 @@
 ### 💾 Persistence
 *   **Local Storage:** All your data—progress, exam date, custom columns, and theme preferences—is saved locally in your browser. No login or internet connection required (except for fetching quotes).
 
+### 📱 Install as App (PWA)
+**JEETracker** is a Progressive Web App. This means you can install it on your device for a native-like experience.
+*   **Offline Access:** Works without an internet connection.
+*   **No "Server" Required:** Once installed, you just click the icon to launch.
+*   **How to Install:**
+    1.  Open the app in Chrome or Edge.
+    2.  Click the "Install" icon in the address bar (or look in the browser menu for "Install JEETracker").
+    3.  Launch it from your Desktop or Start Menu like any other program.
+
 ## 🏗️ Architecture
 
 JEETracker is built as a single-page application (SPA) focused on performance and user experience.

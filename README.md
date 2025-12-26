@@ -69,7 +69,7 @@ public/
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/your-username/JEETracker.git
+    git clone https://github.com/your-username/pcm-tracker.git
     ```
 2.  **Install dependencies:**
     ```bash

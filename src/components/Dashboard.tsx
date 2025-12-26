@@ -1,6 +1,9 @@
+import { useState } from 'react';
 import { ProgressRing } from './ProgressBar';
 import { Subject, SubjectData } from '../types';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { DatePickerModal } from './DatePickerModal';
+import { Atom, FlaskConical, Calculator, Zap, Calendar } from 'lucide-react';
 
 interface DashboardProps {
     physicsProgress: number;
@@ -20,11 +23,12 @@ export function Dashboard({
     onNavigate
 }: DashboardProps) {
     const [examDate, setExamDate] = useLocalStorage<string>('jee-exam-date', '');
+    const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
-    const subjects: { key: Subject; label: string; icon: string; progress: number; color: string }[] = [
-        { key: 'physics', label: 'Physics', icon: '⚛️', progress: physicsProgress, color: 'var(--accent)' },
-        { key: 'chemistry', label: 'Chemistry', icon: '🧪', progress: chemistryProgress, color: 'var(--accent)' },
-        { key: 'maths', label: 'Maths', icon: '📐', progress: mathsProgress, color: 'var(--accent)' },
+    const subjects: { key: Subject; label: string; icon: React.ReactNode; progress: number; color: string }[] = [
+        { key: 'physics', label: 'Physics', icon: <Atom size={24} />, progress: physicsProgress, color: 'var(--accent)' },
+        { key: 'chemistry', label: 'Chemistry', icon: <FlaskConical size={24} />, progress: chemistryProgress, color: 'var(--accent)' },
+        { key: 'maths', label: 'Maths', icon: <Calculator size={24} />, progress: mathsProgress, color: 'var(--accent)' },
     ];
 
     const getChapterStats = (subject: Subject) => {
@@ -54,11 +58,16 @@ export function Dashboard({
         return `hsl(${hue}, 80%, 45%)`;
     };
 
+    const formatDateDisplay = (dateString: string) => {
+        if (!dateString) return 'Set Target Date';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    };
+
     return (
         <div className="dashboard">
             <div className="dashboard-header">
                 <h1>Your Progress</h1>
-                <p className="dashboard-subtitle">Track your JEE preparation journey</p>
             </div>
 
             <div className="dashboard-stats-row">
@@ -114,13 +123,15 @@ export function Dashboard({
                         )}
                         
                         <div className="date-input-container">
-                            <label htmlFor="exam-date">Target Date:</label>
-                            <input 
-                                type="date" 
-                                id="exam-date" 
-                                value={examDate} 
-                                onChange={(e) => setExamDate(e.target.value)} 
-                            />
+                            <label htmlFor="exam-date-btn">Target Date:</label>
+                            <button 
+                                id="exam-date-btn"
+                                className="date-display-btn"
+                                onClick={() => setIsDatePickerOpen(true)}
+                            >
+                                <span>{formatDateDisplay(examDate)}</span>
+                                <Calendar size={18} className="calendar-icon" />
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -153,12 +164,19 @@ export function Dashboard({
             </div>
 
             <div className="motivation-card">
-                <div className="motivation-icon">💪</div>
+                <div className="motivation-icon"><Zap size={32} /></div>
                 <div className="motivation-text">
                     <h3>Keep Going!</h3>
                     <p>Consistency is the key to cracking JEE. Complete at least one chapter today!</p>
                 </div>
             </div>
+
+            <DatePickerModal 
+                isOpen={isDatePickerOpen}
+                selectedDate={examDate}
+                onSelect={setExamDate}
+                onClose={() => setIsDatePickerOpen(false)}
+            />
         </div>
     );
 }

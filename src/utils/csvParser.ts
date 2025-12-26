@@ -13,7 +13,7 @@ export async function parseSubjectCSV(subject: string): Promise<SubjectData> {
                 const headers = results.meta.fields || [];
                 const materialNames = headers.filter(h => h !== 'serial' && h !== 'chapter');
 
-                const chapters: Chapter[] = results.data.map((row: Record<string, string>) => ({
+                const chapters: Chapter[] = (results.data as Record<string, string>[]).map((row) => ({
                     serial: parseInt(row.serial, 10),
                     name: row.chapter,
                     materials: materialNames,

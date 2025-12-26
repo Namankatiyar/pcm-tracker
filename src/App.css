@@ -85,7 +85,7 @@ html {
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.6;
@@ -216,11 +216,14 @@ body {
 }
 
 .current-color-indicator {
-  width: 22px;
-  height: 22px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   border: 2px solid var(--bg-secondary);
   box-shadow: 0 0 0 1px var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .color-picker-backdrop {
@@ -315,11 +318,6 @@ body {
   font-size: 2rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
-}
-
-.dashboard-subtitle {
-  color: var(--text-secondary);
-  font-size: 1.0625rem;
 }
 
 .dashboard-stats-row {
@@ -694,17 +692,21 @@ body {
 }
 
 .add-material-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: var(--bg-tertiary);
   border: 1px solid var(--border);
   color: var(--accent);
   border-radius: 4px;
-  padding: 0.1rem 0.4rem;
-  font-size: 0.7rem;
+  padding: 0.15rem 0.6rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   margin-left: 0.75rem;
   transition: all var(--transition-fast);
   vertical-align: middle;
+  height: 24px;
 }
 
 .add-material-btn:hover {
@@ -1057,6 +1059,129 @@ th.material-header, td.material-cell {
 .modal-btn.confirm:hover {
   opacity: 0.9;
   transform: translateY(-1px);
+}
+
+.modal-input {
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius-sm);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  transition: all var(--transition-fast);
+  margin-top: 0.5rem;
+}
+
+.modal-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-light);
+}
+
+/* ===== Date Picker Modal ===== */
+.date-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.date-picker-header button {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  transition: all var(--transition-fast);
+}
+
+.date-picker-header button:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.date-picker-header span {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.25rem;
+  text-align: center;
+}
+
+.calendar-day-header {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  padding: 0.5rem 0;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  border-radius: 50%; /* Circular selection */
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  color: var(--text-primary);
+  background: transparent;
+  border: none;
+}
+
+.calendar-day:hover:not(:disabled) {
+  background: var(--bg-tertiary);
+}
+
+.calendar-day.selected {
+  background: var(--accent);
+  color: white;
+}
+
+.calendar-day.today {
+  border: 1px solid var(--accent);
+  color: var(--accent);
+}
+
+.calendar-day.today.selected {
+  color: white;
+  border-color: transparent;
+}
+
+.calendar-day.empty {
+  pointer-events: none;
+}
+
+.date-display-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius-sm);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  width: 100%;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.date-display-btn:hover {
+  border-color: var(--accent);
+}
+
+.date-display-btn .calendar-icon {
+  color: var(--accent);
 }
 
 /* ===== Responsive ===== */

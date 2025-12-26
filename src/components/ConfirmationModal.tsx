@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface ConfirmationModalProps {
     isOpen: boolean;
     title: string;

@@ -3,6 +3,8 @@ import { Subject, SubjectData, SubjectProgress, Priority } from '../types';
 import { ChapterRow } from './ChapterRow';
 import { ProgressBar } from './ProgressBar';
 import { ConfirmationModal } from './ConfirmationModal';
+import { InputModal } from './InputModal';
+import { Atom, FlaskConical, Calculator, Plus, X as XIcon } from 'lucide-react';
 
 interface SubjectPageProps {
     subject: Subject;
@@ -15,10 +17,10 @@ interface SubjectPageProps {
     onRemoveMaterial?: (name: string) => void;
 }
 
-const subjectConfig: Record<Subject, { label: string; icon: string; color: string }> = {
-    physics: { label: 'Physics', icon: '⚛️', color: '#6366f1' },
-    chemistry: { label: 'Chemistry', icon: '🧪', color: '#10b981' },
-    maths: { label: 'Maths', icon: '📐', color: '#f59e0b' },
+const subjectConfig: Record<Subject, { label: string; icon: React.ReactNode; color: string }> = {
+    physics: { label: 'Physics', icon: <Atom size={32} />, color: '#6366f1' },
+    chemistry: { label: 'Chemistry', icon: <FlaskConical size={32} />, color: '#10b981' },
+    maths: { label: 'Maths', icon: <Calculator size={32} />, color: '#f59e0b' },
 };
 
 export function SubjectPage({
@@ -36,6 +38,7 @@ export function SubjectPage({
         isOpen: false,
         material: null
     });
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
     if (!data) {
         return (
@@ -46,12 +49,11 @@ export function SubjectPage({
         );
     }
 
-    const handleAddMaterialClick = () => {
-        if (!onAddMaterial) return;
-        const name = window.prompt("Enter the name of the new study material (e.g., 'YouTube', 'Notes'):");
-        if (name && name.trim()) {
+    const handleAddMaterial = (name: string) => {
+        if (onAddMaterial && name && name.trim()) {
             onAddMaterial(name.trim());
         }
+        setIsAddModalOpen(false);
     };
 
     const confirmDelete = () => {
@@ -73,10 +75,11 @@ export function SubjectPage({
                             {onAddMaterial && (
                                 <button 
                                     className="add-material-btn"
-                                    onClick={handleAddMaterialClick}
+                                    onClick={() => setIsAddModalOpen(true)}
                                     title="Add new study material column"
                                 >
-                                    + Add
+                                    <Plus size={16} style={{ marginRight: '4px' }} />
+                                    Add
                                 </button>
                             )}
                         </p>
@@ -103,7 +106,7 @@ export function SubjectPage({
                                                 onClick={() => setDeleteModalState({ isOpen: true, material })}
                                                 title="Remove column"
                                             >
-                                                ×
+                                                <XIcon size={14} />
                                             </button>
                                         )}
                                     </div>
@@ -155,6 +158,15 @@ export function SubjectPage({
                 message={`Are you sure you want to remove the '${deleteModalState.material}' column? This will hide it from your view.`}
                 onConfirm={confirmDelete}
                 onCancel={() => setDeleteModalState({ isOpen: false, material: null })}
+            />
+
+            <InputModal
+                isOpen={isAddModalOpen}
+                title="Add Study Material"
+                message="Enter the name of the new study material (e.g., 'YouTube', 'Notes'):"
+                placeholder="Material Name"
+                onConfirm={handleAddMaterial}
+                onCancel={() => setIsAddModalOpen(false)}
             />
         </div>
     );

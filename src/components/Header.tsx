@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Subject } from '../types';
+import { LayoutDashboard, Atom, FlaskConical, Calculator, Sun, Moon, Palette } from 'lucide-react';
 
 interface HeaderProps {
     currentView: 'dashboard' | Subject;
@@ -28,11 +29,11 @@ const ACCENT_COLORS = [
 export function Header({ currentView, onNavigate, theme, onThemeToggle, accentColor, onAccentChange }: HeaderProps) {
     const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
 
-    const navItems: { key: 'dashboard' | Subject; label: string; icon: string }[] = [
-        { key: 'dashboard', label: 'Dashboard', icon: '📊' },
-        { key: 'physics', label: 'Physics', icon: '⚛️' },
-        { key: 'chemistry', label: 'Chemistry', icon: '🧪' },
-        { key: 'maths', label: 'Maths', icon: '📐' },
+    const navItems: { key: 'dashboard' | Subject; label: string; icon: React.ReactNode }[] = [
+        { key: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
+        { key: 'physics', label: 'Physics', icon: <Atom size={20} /> },
+        { key: 'chemistry', label: 'Chemistry', icon: <FlaskConical size={20} /> },
+        { key: 'maths', label: 'Maths', icon: <Calculator size={20} /> },
     ];
 
     return (
@@ -63,7 +64,9 @@ export function Header({ currentView, onNavigate, theme, onThemeToggle, accentCo
                             aria-label="Change accent color"
                             title="Change accent color"
                         >
-                            <div className="current-color-indicator" style={{ backgroundColor: accentColor }}></div>
+                            <div className="current-color-indicator" style={{ backgroundColor: accentColor }}>
+                                <Palette size={20} color="white" style={{ opacity: 0.8 }} />
+                            </div>
                         </button>
 
                         {isColorPickerOpen && (
@@ -94,8 +97,9 @@ export function Header({ currentView, onNavigate, theme, onThemeToggle, accentCo
                         className="theme-toggle"
                         onClick={onThemeToggle}
                         aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+                        style={{ color: theme === 'dark' ? accentColor : '#000000' }}
                     >
-                        {theme === 'light' ? '🌙' : '☀️'}
+                        {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
                     </button>
                 </div>
             </div>

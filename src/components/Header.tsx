@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Subject } from '../types';
-import { LayoutDashboard, Atom, FlaskConical, Calculator, Sun, Moon, Palette } from 'lucide-react';
+import { LayoutDashboard, Atom, FlaskConical, Calculator, Sun, Moon, Palette, Settings } from 'lucide-react';
+import { SettingsModal } from './SettingsModal';
 
 interface HeaderProps {
     currentView: 'dashboard' | Subject;
@@ -28,6 +29,7 @@ const ACCENT_COLORS = [
 
 export function Header({ currentView, onNavigate, theme, onThemeToggle, accentColor, onAccentChange }: HeaderProps) {
     const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
     const navItems: { key: 'dashboard' | Subject; label: string; icon: React.ReactNode }[] = [
         { key: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
@@ -101,8 +103,21 @@ export function Header({ currentView, onNavigate, theme, onThemeToggle, accentCo
                     >
                         {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
                     </button>
+
+                    <button 
+                        className="theme-toggle"
+                        onClick={() => setIsSettingsOpen(true)}
+                        aria-label="Open settings"
+                        title="Settings & Data Backup"
+                        style={{ color: theme === 'dark' ? accentColor : '#000000' }}
+                    >
+                        <Settings size={20} />
+                    </button>
                 </div>
             </div>
+            
+            <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
         </header>
     );
 }
+

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ProgressRing } from './ProgressBar';
 import { Subject, SubjectData } from '../types';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -24,6 +24,19 @@ export function Dashboard({
 }: DashboardProps) {
     const [examDate, setExamDate] = useLocalStorage<string>('jee-exam-date', '');
     const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+    const [quote, setQuote] = useState<{ text: string; author: string } | null>(null);
+
+    useEffect(() => {
+        fetch('https://dummyjson.com/quotes/random')
+            .then(res => res.json())
+            .then(data => {
+                setQuote({ text: data.quote, author: data.author });
+            })
+            .catch(err => {
+                console.error("Failed to fetch quote:", err);
+                setQuote(null);
+            });
+    }, []);
 
     const subjects: { key: Subject; label: string; icon: React.ReactNode; progress: number; color: string }[] = [
         { key: 'physics', label: 'Physics', icon: <Atom size={24} />, progress: physicsProgress, color: 'var(--accent)' },
@@ -67,7 +80,14 @@ export function Dashboard({
     return (
         <div className="dashboard">
             <div className="dashboard-header">
-                <h1>Your Progress</h1>
+                {quote ? (
+                    <div className="quote-container">
+                        <h1>"{quote.text}"</h1>
+                        <p className="quote-author">- {quote.author}</p>
+                    </div>
+                ) : (
+                    <h1>Your Progress</h1>
+                )}
             </div>
 
             <div className="dashboard-stats-row">

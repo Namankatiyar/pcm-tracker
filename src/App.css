@@ -103,7 +103,7 @@ body {
 .main-content {
   flex: 1;
   padding: 2rem;
-  padding-top: calc(var(--header-height) + 2rem);
+  padding-top: calc(var(--header-height) + 1rem);
   max-width: var(--content-max-width);
   margin: 0 auto;
   width: 100%;
@@ -306,18 +306,18 @@ body {
 .dashboard {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.25rem;
 }
 
 .dashboard-header {
   text-align: center;
-  padding: 1rem 0;
+  padding: 0.25rem 0;
 }
 
 .dashboard-header h1 {
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 700;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.2rem;
 }
 
 .dashboard-stats-row {
@@ -1235,4 +1235,11 @@ th.material-header, td.material-cell {
   .legend-items {
     gap: 1rem;
   }
+}
+
+.quote-author {
+  font-size: 1rem;
+  font-style: italic;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
 }

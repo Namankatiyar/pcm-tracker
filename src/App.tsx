@@ -63,6 +63,12 @@ function App() {
         document.documentElement.style.setProperty('--accent', accentColor);
         document.documentElement.style.setProperty('--accent-light', `color-mix(in srgb, ${accentColor}, transparent 90%)`);
         document.documentElement.style.setProperty('--accent-hover', `color-mix(in srgb, ${accentColor}, black 10%)`);
+        
+        // Update PWA theme color
+        const metaThemeColor = document.querySelector("meta[name=theme-color]");
+        if (metaThemeColor) {
+            metaThemeColor.setAttribute("content", accentColor);
+        }
     }, [accentColor]);
 
     // Merge CSV data with custom columns and filter excluded ones

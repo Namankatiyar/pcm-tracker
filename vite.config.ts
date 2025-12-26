@@ -10,9 +10,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg', 'logo.png'],
       manifest: {
-        name: 'JEETracker',
-        short_name: 'JEETracker',
-        description: 'Track your JEE preparation progress offline',
+        name: 'PCM-Tracker',
+        short_name: 'PCM-Tracker',
+        description: 'Track your PCM preparation progress offline',
         theme_color: '#6366f1',
         background_color: '#f8fafc',
         display: 'standalone',

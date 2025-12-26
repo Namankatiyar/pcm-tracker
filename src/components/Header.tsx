@@ -40,7 +40,7 @@ export function Header({ currentView, onNavigate, theme, onThemeToggle, accentCo
         <header className="header">
             <div className="header-content">
                 <div className="logo">
-                    <span className="logo-text">JEE Tracker</span>
+                    <span className="logo-text">PCM Tracker</span>
                 </div>
 
                 <nav className="nav">

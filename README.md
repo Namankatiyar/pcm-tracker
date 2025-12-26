@@ -1,6 +1,6 @@
-# JEETracker
+# PCM-Tracker
 
-**JEETracker** is a specialized, offline-first progress tracking application designed for students preparing for the Joint Entrance Examination (JEE). It provides a comprehensive dashboard to monitor preparation across Physics, Chemistry, and Maths, with a focus on granular resource tracking, visual motivation, and persistent data storage.
+**PCM-Tracker** is a specialized, offline-first progress tracking application designed for students preparing for the Joint Entrance Examination (JEE). It provides a comprehensive dashboard to monitor preparation across Physics, Chemistry, and Maths, with a focus on granular resource tracking, visual motivation, and persistent data storage.
 
 ## 🚀 Features
 
@@ -26,17 +26,17 @@
 *   **Local Storage:** All your data—progress, exam date, custom columns, and theme preferences—is saved locally in your browser. No login or internet connection required (except for fetching quotes).
 
 ### 📱 Install as App (PWA)
-**JEETracker** is a Progressive Web App. This means you can install it on your device for a native-like experience.
+**PCM-Tracker** is a Progressive Web App. This means you can install it on your device for a native-like experience.
 *   **Offline Access:** Works without an internet connection.
 *   **No "Server" Required:** Once installed, you just click the icon to launch.
 *   **How to Install:**
     1.  Open the app in Chrome or Edge.
-    2.  Click the "Install" icon in the address bar (or look in the browser menu for "Install JEETracker").
+    2.  Click the "Install" icon in the address bar (or look in the browser menu for "Install PCM-Tracker").
     3.  Launch it from your Desktop or Start Menu like any other program.
 
 ## 🏗️ Architecture
 
-JEETracker is built as a single-page application (SPA) focused on performance and user experience.
+PCM-Tracker is built as a single-page application (SPA) focused on performance and user experience.
 
 *   **Frontend Framework:** [React 18](https://react.dev/) with [TypeScript](https://www.typescriptlang.org/) for robust type safety and component-based architecture.
 *   **Build Tool:** [Vite](https://vitejs.dev/) for lightning-fast development server and optimized production builds.
@@ -69,7 +69,7 @@ public/
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/your-username/JEETracker.git
+    git clone https://github.com/your-username/PCM-Tracker.git
     ```
 2.  **Install dependencies:**
     ```bash

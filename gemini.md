@@ -1,7 +1,7 @@
-# JEETracker
+# PCM-Tracker
 
 ## Project Overview
-**JEETracker** is a specialized progress tracking application designed for students preparing for the JEE (Joint Entrance Examination). It provides a comprehensive dashboard to monitor preparation across Physics, Chemistry, and Maths, with a focus on granular resource tracking and visual motivation.
+**PCM-Tracker** is a specialized progress tracking application designed for students preparing for the JEE (Joint Entrance Examination). It provides a comprehensive dashboard to monitor preparation across Physics, Chemistry, and Maths, with a focus on granular resource tracking and visual motivation.
 
 ## Core Features
 - **Preparation Dashboard**: Visualizes overall completion percentage across all subjects using progress rings.

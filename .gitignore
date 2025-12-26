@@ -32,3 +32,6 @@ yarn-error.log*
 
 # Vite
 .vite/
+
+.vercel
+.env*.local

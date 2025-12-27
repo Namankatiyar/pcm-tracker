@@ -12,6 +12,7 @@ interface DashboardProps {
     overallProgress: number;
     subjectData: Record<Subject, SubjectData | null>;
     onNavigate: (subject: Subject) => void;
+    quote?: { quote: string; author: string } | null;
 }
 
 export function Dashboard({
@@ -20,23 +21,11 @@ export function Dashboard({
     mathsProgress,
     overallProgress,
     subjectData,
-    onNavigate
+    onNavigate,
+    quote
 }: DashboardProps) {
     const [examDate, setExamDate] = useLocalStorage<string>('jee-exam-date', '');
     const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-    const [quote, setQuote] = useState<{ text: string; author: string } | null>(null);
-
-    useEffect(() => {
-        fetch('https://dummyjson.com/quotes/random')
-            .then(res => res.json())
-            .then(data => {
-                setQuote({ text: data.quote, author: data.author });
-            })
-            .catch(err => {
-                console.error("Failed to fetch quote:", err);
-                setQuote(null);
-            });
-    }, []);
 
     const subjects: { key: Subject; label: string; icon: React.ReactNode; progress: number; color: string }[] = [
         { key: 'physics', label: 'Physics', icon: <Atom size={24} />, progress: physicsProgress, color: 'var(--accent)' },
@@ -82,7 +71,7 @@ export function Dashboard({
             <div className="dashboard-header">
                 {quote ? (
                     <div className="quote-container">
-                        <h1>"{quote.text}"</h1>
+                        <h1>"{quote.quote}"</h1>
                         <p className="quote-author">- {quote.author}</p>
                     </div>
                 ) : (

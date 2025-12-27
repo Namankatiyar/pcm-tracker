@@ -6,6 +6,7 @@ import { useLocalStorage } from './hooks/useLocalStorage';
 import { useProgress } from './hooks/useProgress';
 import { parseSubjectCSV } from './utils/csvParser';
 import { AppProgress, Subject, SubjectData, Priority } from './types';
+import quotes from './quotes.json';
 
 type View = 'dashboard' | Subject;
 
@@ -36,6 +37,8 @@ function App() {
         chemistry: null,
         maths: null,
     });
+    
+    const [dailyQuote, setDailyQuote] = useState<{ quote: string; author: string } | null>(null);
 
     // Load CSV data
     useEffect(() => {
@@ -51,6 +54,21 @@ function App() {
         loadSubjectData('physics');
         loadSubjectData('chemistry');
         loadSubjectData('maths');
+    }, []);
+
+    // Load Quote Once per Session/Load
+    useEffect(() => {
+        const storedIndex = localStorage.getItem('jee-tracker-quote-index');
+        let index = storedIndex ? parseInt(storedIndex, 10) : 0;
+
+        if (isNaN(index) || index >= quotes.length) {
+            index = 0;
+        }
+
+        setDailyQuote(quotes[index]);
+
+        const nextIndex = (index + 1) % quotes.length;
+        localStorage.setItem('jee-tracker-quote-index', nextIndex.toString());
     }, []);
 
     // Apply theme
@@ -185,6 +203,7 @@ function App() {
                     overallProgress={overallProgress}
                     subjectData={mergedSubjectData}
                     onNavigate={setCurrentView}
+                    quote={dailyQuote}
                 />
             );
         }

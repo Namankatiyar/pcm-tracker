@@ -35,6 +35,8 @@ function App() {
         maths: []
     });
 
+    const [plannerDateToOpen, setPlannerDateToOpen] = useState<string | null>(null);
+
     const [subjectData, setSubjectData] = useState<Record<Subject, SubjectData | null>>({
         physics: null,
         chemistry: null,
@@ -223,6 +225,11 @@ function App() {
         setTheme(prev => prev === 'light' ? 'dark' : 'light');
     };
 
+    const handleQuickAddTask = () => {
+        setPlannerDateToOpen(new Date().toISOString().split('T')[0]);
+        setCurrentView('planner');
+    };
+
     // Planner Handlers
     const handleAddPlannerTask = (task: PlannerTask) => {
         setPlannerTasks(prev => [...prev, task]);
@@ -288,6 +295,7 @@ function App() {
                     onToggleTask={handleTogglePlannerTask}
                     examDate={examDate}
                     onExamDateChange={setExamDate}
+                    onQuickAdd={handleQuickAddTask}
                 />
             );
         }
@@ -302,6 +310,8 @@ function App() {
                     onDeleteTask={handleDeletePlannerTask}
                     subjectData={mergedSubjectData}
                     examDate={examDate}
+                    initialOpenDate={plannerDateToOpen}
+                    onConsumeInitialDate={() => setPlannerDateToOpen(null)}
                 />
             );
         }

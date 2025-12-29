@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Plus, Check, Trash2, Calendar as CalendarIcon, Clock, Pencil } from 'lucide-react';
 import { PlannerTask, Subject, SubjectData } from '../types';
 import { TaskModal } from './TaskModal';
@@ -11,16 +11,28 @@ interface PlannerProps {
     onDeleteTask: (taskId: string) => void;
     subjectData: Record<Subject, SubjectData | null>;
     examDate: string;
+    initialOpenDate?: string | null;
+    onConsumeInitialDate?: () => void;
 }
 
 type ViewMode = 'weekly' | 'monthly';
 
-export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTask, subjectData, examDate }: PlannerProps) {
+export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTask, subjectData, examDate, initialOpenDate, onConsumeInitialDate }: PlannerProps) {
     const [viewMode, setViewMode] = useState<ViewMode>('weekly');
     const [currentDate, setCurrentDate] = useState(new Date());
     const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
     const [selectedDateForTask, setSelectedDateForTask] = useState('');
     const [taskToEdit, setTaskToEdit] = useState<PlannerTask | null>(null);
+
+    // Handle initial open intent
+    useEffect(() => {
+        if (initialOpenDate) {
+            setSelectedDateForTask(initialOpenDate);
+            setTaskToEdit(null);
+            setIsTaskModalOpen(true);
+            if (onConsumeInitialDate) onConsumeInitialDate();
+        }
+    }, [initialOpenDate, onConsumeInitialDate]);
 
     const getMonday = (d: Date) => {
         const date = new Date(d);

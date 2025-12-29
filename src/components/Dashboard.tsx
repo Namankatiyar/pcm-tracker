@@ -17,6 +17,7 @@ interface DashboardProps {
     onToggleTask: (taskId: string) => void;
     examDate: string;
     onExamDateChange: (date: string) => void;
+    onQuickAdd: () => void;
 }
 
 export function Dashboard({
@@ -30,7 +31,8 @@ export function Dashboard({
     plannerTasks,
     onToggleTask,
     examDate,
-    onExamDateChange
+    onExamDateChange,
+    onQuickAdd
 }: DashboardProps) {
     const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
@@ -129,9 +131,41 @@ export function Dashboard({
                 </div>
 
                 <div className="agenda-card">
-                    <div className="agenda-header">
-                        <h2>Today's Agenda</h2>
-                        <p>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+                    <div className="agenda-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                            <h2>Today's Agenda</h2>
+                            <p>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+                        </div>
+                        {todaysTasks.length > 0 && (
+                            <button 
+                                onClick={onQuickAdd}
+                                className="icon-btn"
+                                style={{ 
+                                    background: 'var(--bg-tertiary)', 
+                                    border: '1px solid var(--border)', 
+                                    borderRadius: '50%', 
+                                    padding: '0.5rem',
+                                    color: 'var(--text-secondary)',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    transition: 'all 0.2s'
+                                }}
+                                title="Add task"
+                                onMouseEnter={e => {
+                                    e.currentTarget.style.borderColor = 'var(--accent)';
+                                    e.currentTarget.style.color = 'var(--accent)';
+                                }}
+                                onMouseLeave={e => {
+                                    e.currentTarget.style.borderColor = 'var(--border)';
+                                    e.currentTarget.style.color = 'var(--text-secondary)';
+                                }}
+                            >
+                                <Check size={16} style={{ display: 'none' }} /> {/* Dummy for import check? No, I need Plus */}
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                            </button>
+                        )}
                     </div>
                     
                     <div className="agenda-list">
@@ -170,9 +204,14 @@ export function Dashboard({
                                 </div>
                             ))
                         ) : (
-                            <div className="empty-agenda">
+                            <div 
+                                className="empty-agenda clickable" 
+                                onClick={onQuickAdd}
+                                style={{ cursor: 'pointer' }}
+                                title="Click to add a task"
+                            >
                                 <p>No tasks scheduled for today.</p>
-                                <p className="empty-hint">Check the Planner to add tasks!</p>
+                                <p className="empty-hint">Click here to add a task!</p>
                             </div>
                         )}
                     </div>

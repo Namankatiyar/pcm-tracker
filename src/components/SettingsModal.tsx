@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import ReactDOM from 'react-dom';
 import { Download, Upload, X, AlertTriangle, Check } from 'lucide-react';
 
 interface SettingsModalProps {
@@ -13,7 +14,8 @@ const STORAGE_KEYS = {
     accent: 'jee-tracker-accent',
     customColumns: 'jee-tracker-custom-columns',
     excludedColumns: 'jee-tracker-excluded-columns',
-    examDate: 'jee-exam-date'
+    examDate: 'jee-exam-date',
+    plannerTasks: 'jee-tracker-planner-tasks' // Added for backup
 };
 
 export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
@@ -21,25 +23,31 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     const [importStatus, setImportStatus] = useState<'idle' | 'success' | 'error'>('idle');
     const [statusMessage, setStatusMessage] = useState('');
 
-    if (!isOpen) return null;
+    const modalRoot = document.getElementById('modal-root');
+
+    if (!isOpen || !modalRoot) return null;
 
     const handleExport = () => {
         try {
-            const data = {
+            const dataToExport: Record<string, any> = {};
+            for (const key of Object.values(STORAGE_KEYS)) {
+                const item = localStorage.getItem(key);
+                if (item) {
+                    try {
+                        dataToExport[key] = JSON.parse(item);
+                    } catch {
+                        dataToExport[key] = item; // Store as raw string if not JSON
+                    }
+                }
+            }
+            
+            const backupData = {
                 version: 1,
                 timestamp: new Date().toISOString(),
-                export: {
-                    theme: localStorage.getItem(STORAGE_KEYS.theme),
-                    view: localStorage.getItem(STORAGE_KEYS.view),
-                    progress: JSON.parse(localStorage.getItem(STORAGE_KEYS.progress) || '{}'),
-                    accent: JSON.parse(localStorage.getItem(STORAGE_KEYS.accent) || '"#6366f1"'),
-                    customColumns: JSON.parse(localStorage.getItem(STORAGE_KEYS.customColumns) || '{"physics":[],"chemistry":[],"maths":[]}'),
-                    excludedColumns: JSON.parse(localStorage.getItem(STORAGE_KEYS.excludedColumns) || '{"physics":[],"chemistry":[],"maths":[]}'),
-                    examDate: JSON.parse(localStorage.getItem(STORAGE_KEYS.examDate) || '""')
-                }
+                export: dataToExport
             };
 
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -64,19 +72,16 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             try {
                 const json = JSON.parse(e.target?.result as string);
                 
-                // Basic validation
                 if (!json.export || !json.version) {
                     throw new Error('Invalid backup file format');
                 }
 
-                // Restore data
-                if (json.export.theme) localStorage.setItem(STORAGE_KEYS.theme, json.export.theme);
-                if (json.export.view) localStorage.setItem(STORAGE_KEYS.view, json.export.view);
-                if (json.export.progress) localStorage.setItem(STORAGE_KEYS.progress, JSON.stringify(json.export.progress));
-                if (json.export.accent) localStorage.setItem(STORAGE_KEYS.accent, JSON.stringify(json.export.accent));
-                if (json.export.customColumns) localStorage.setItem(STORAGE_KEYS.customColumns, JSON.stringify(json.export.customColumns));
-                if (json.export.excludedColumns) localStorage.setItem(STORAGE_KEYS.excludedColumns, JSON.stringify(json.export.excludedColumns));
-                if (json.export.examDate) localStorage.setItem(STORAGE_KEYS.examDate, JSON.stringify(json.export.examDate));
+                for (const key in json.export) {
+                    if (Object.values(STORAGE_KEYS).includes(key)) {
+                        const value = json.export[key];
+                        localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
+                    }
+                }
 
                 setImportStatus('success');
                 setStatusMessage('Data imported successfully! Reloading...');
@@ -94,7 +99,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         reader.readAsText(file);
     };
 
-    return (
+    const modalContent = (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content settings-modal" onClick={e => e.stopPropagation()}>
                 <div className="modal-header">
@@ -146,4 +151,6 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             </div>
         </div>
     );
+    
+    return ReactDOM.createPortal(modalContent, modalRoot);
 }

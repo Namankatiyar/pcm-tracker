@@ -22,6 +22,7 @@ function App() {
     const [currentView, setCurrentView] = useLocalStorage<View>('jee-tracker-view', 'dashboard');
     const [progress, setProgress] = useLocalStorage<AppProgress>('jee-tracker-progress', initialProgress);
     const [accentColor, setAccentColor] = useLocalStorage<string>('jee-tracker-accent', '#6366f1');
+    const [examDate, setExamDate] = useLocalStorage<string>('jee-exam-date', '');
     const [plannerTasks, setPlannerTasks] = useLocalStorage<PlannerTask[]>('jee-tracker-planner-tasks', []);
     const [customColumns, setCustomColumns] = useLocalStorage<Record<Subject, string[]>>('jee-tracker-custom-columns', {
         physics: [],
@@ -266,6 +267,8 @@ function App() {
                     quote={dailyQuote}
                     plannerTasks={plannerTasks}
                     onToggleTask={handleTogglePlannerTask}
+                    examDate={examDate}
+                    onExamDateChange={setExamDate}
                 />
             );
         }
@@ -279,6 +282,7 @@ function App() {
                     onToggleTask={handleTogglePlannerTask}
                     onDeleteTask={handleDeletePlannerTask}
                     subjectData={mergedSubjectData}
+                    examDate={examDate}
                 />
             );
         }

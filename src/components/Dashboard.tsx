@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { ProgressRing } from './ProgressBar';
 import { Subject, SubjectData, PlannerTask } from '../types';
-import { useLocalStorage } from '../hooks/useLocalStorage';
 import { DatePickerModal } from './DatePickerModal';
 import { Atom, FlaskConical, Calculator, Zap, Calendar, Check, Clock } from 'lucide-react';
 
@@ -15,6 +14,8 @@ interface DashboardProps {
     quote?: { quote: string; author: string } | null;
     plannerTasks: PlannerTask[];
     onToggleTask: (taskId: string) => void;
+    examDate: string;
+    onExamDateChange: (date: string) => void;
 }
 
 export function Dashboard({
@@ -26,9 +27,10 @@ export function Dashboard({
     onNavigate,
     quote,
     plannerTasks,
-    onToggleTask
+    onToggleTask,
+    examDate,
+    onExamDateChange
 }: DashboardProps) {
-    const [examDate, setExamDate] = useLocalStorage<string>('jee-exam-date', '');
     const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
     const subjects: { key: Subject; label: string; icon: React.ReactNode; progress: number; color: string }[] = [
@@ -69,7 +71,14 @@ export function Dashboard({
     };
 
     const todayStr = new Date().toISOString().split('T')[0];
-    const todaysTasks = plannerTasks.filter(t => t.date === todayStr).sort((a, b) => a.time.localeCompare(b.time));
+    const todaysTasks = plannerTasks
+        .filter(t => t.date === todayStr)
+        .sort((a, b) => {
+            if (a.completed !== b.completed) {
+                return a.completed ? 1 : -1;
+            }
+            return a.time.localeCompare(b.time);
+        });
 
     return (
         <div className="dashboard">
@@ -127,7 +136,20 @@ export function Dashboard({
                                     </button>
                                     <div className="agenda-info">
                                         <span className="agenda-title">{task.title}</span>
-                                        {task.subtitle && <span className="agenda-subtitle">{task.subtitle}</span>}
+                                        {task.subtitle && (
+                                            <span className="agenda-subtitle">
+                                                {task.subject && (
+                                                    <span style={{ 
+                                                        color: `var(--${task.subject})`, 
+                                                        fontWeight: 600,
+                                                        marginRight: '4px'
+                                                    }}>
+                                                        {task.subject.charAt(0).toUpperCase() + task.subject.slice(1)} •
+                                                    </span>
+                                                )}
+                                                {task.subtitle}
+                                            </span>
+                                        )}
                                     </div>
                                     <div className="agenda-time">
                                         {task.time}
@@ -222,7 +244,7 @@ export function Dashboard({
             <DatePickerModal 
                 isOpen={isDatePickerOpen}
                 selectedDate={examDate}
-                onSelect={setExamDate}
+                onSelect={onExamDateChange}
                 onClose={() => setIsDatePickerOpen(false)}
             />
         </div>

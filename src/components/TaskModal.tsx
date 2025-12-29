@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
-import { X, BookOpen, Type, Clock, Search, ChevronRight } from 'lucide-react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { X, BookOpen, Type, Clock, Search, ChevronRight, Check } from 'lucide-react';
 import { Subject, SubjectData, Chapter, PlannerTask } from '../types';
 
 interface TaskModalProps {
@@ -25,14 +25,33 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
     const [time, setTime] = useState('');
     const [date, setDate] = useState(initialDate);
     const [chapterSearch, setChapterSearch] = useState('');
+    
+    // Time Picker States
+    const [isTimePickerOpen, setIsTimePickerOpen] = useState(false);
+    const [selectedHour, setSelectedHour] = useState('12');
+    const [selectedMinute, setSelectedMinute] = useState('00');
+    const [selectedPeriod, setSelectedPeriod] = useState<'AM' | 'PM'>('PM');
 
     useEffect(() => {
         if (isOpen) {
             setChapterSearch('');
+            setIsTimePickerOpen(false);
             if (taskToEdit) {
                 setTaskType(taskToEdit.type);
                 setStep(2);
                 setTime(taskToEdit.time);
+                
+                // Parse time for picker
+                const [h, m] = taskToEdit.time.split(':');
+                let hour = parseInt(h);
+                const period = hour >= 12 ? 'PM' : 'AM';
+                if (hour > 12) hour -= 12;
+                if (hour === 0) hour = 12;
+                
+                setSelectedHour(hour.toString().padStart(2, '0'));
+                setSelectedMinute(m);
+                setSelectedPeriod(period);
+
                 setDate(taskToEdit.date);
                 
                 if (taskToEdit.type === 'custom') {
@@ -51,9 +70,31 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                 setSelectedMaterial('');
                 setTime('');
                 setDate(initialDate);
+                
+                // Default time states
+                const now = new Date();
+                let h = now.getHours();
+                const m = Math.ceil(now.getMinutes() / 5) * 5; // Round to nearest 5
+                const p = h >= 12 ? 'PM' : 'AM';
+                if (h > 12) h -= 12;
+                if (h === 0) h = 12;
+                
+                setSelectedHour(h.toString().padStart(2, '0'));
+                setSelectedMinute(m.toString().padStart(2, '0'));
+                setSelectedPeriod(p);
             }
         }
     }, [isOpen, initialDate, taskToEdit]);
+
+    // Update time string when picker components change
+    useEffect(() => {
+        if (step === 2) {
+            let h = parseInt(selectedHour);
+            if (selectedPeriod === 'PM' && h !== 12) h += 12;
+            if (selectedPeriod === 'AM' && h === 12) h = 0;
+            setTime(`${h.toString().padStart(2, '0')}:${selectedMinute}`);
+        }
+    }, [selectedHour, selectedMinute, selectedPeriod, step]);
 
     const handleNext = (type: 'chapter' | 'custom') => {
         setTaskType(type);
@@ -104,6 +145,15 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
         return chapters.filter(c => c.name.toLowerCase().includes(chapterSearch.toLowerCase()));
     }, [selectedSubject, subjectData, chapterSearch]);
 
+    const availableMaterials = useMemo(() => {
+        if (!selectedSubject || selectedChapterSerial === '') return [];
+        return subjectData[selectedSubject as Subject]?.chapters
+            .find(c => c.serial === selectedChapterSerial)?.materials || [];
+    }, [selectedSubject, selectedChapterSerial, subjectData]);
+
+    const hours = Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, '0'));
+    const minutes = Array.from({ length: 12 }, (_, i) => (i * 5).toString().padStart(2, '0'));
+
     if (!isOpen) return null;
 
     return (
@@ -114,7 +164,7 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                     <button className="close-btn" onClick={onClose}><X size={20} /></button>
                 </div>
 
-                <div className="modal-body" style={{ minHeight: '300px' }}>
+                <div className="modal-body-scrollable">
                     {step === 1 ? (
                         <div className="task-type-selection">
                             <button className="type-btn" onClick={() => handleNext('chapter')}>
@@ -199,18 +249,20 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                                     {selectedChapterSerial !== '' && (
                                         <div className="form-group">
                                             <label>Material</label>
-                                            <select 
-                                                value={selectedMaterial} 
-                                                onChange={(e) => setSelectedMaterial(e.target.value)}
-                                                className="custom-select"
-                                            >
-                                                <option value="">Select Material</option>
-                                                {subjectData[selectedSubject as Subject]?.chapters
-                                                    .find(c => c.serial === selectedChapterSerial)?.materials.map((m) => (
-                                                        <option key={m} value={m}>{m}</option>
-                                                    ))
-                                                }
-                                            </select>
+                                            <div className="material-pills">
+                                                {availableMaterials.map((m) => (
+                                                    <button
+                                                        key={m}
+                                                        className={`material-pill ${selectedMaterial === m ? 'selected' : ''}`}
+                                                        onClick={() => setSelectedMaterial(m)}
+                                                    >
+                                                        {m}
+                                                    </button>
+                                                ))}
+                                                {availableMaterials.length === 0 && (
+                                                    <div className="no-materials">No materials available</div>
+                                                )}
+                                            </div>
                                         </div>
                                     )}
                                 </>
@@ -230,16 +282,62 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
 
                             <div className="form-group">
                                 <label>Till when? (Deadline)</label>
-                                <div className="time-input-wrapper">
-                                    <input 
-                                        type="time" 
-                                        value={time} 
-                                        onChange={e => setTime(e.target.value)}
-                                        required
-                                        className="styled-time-input"
-                                    />
-                                    <Clock size={18} className="input-icon-right" />
+                                <div 
+                                    className={`time-display-box ${isTimePickerOpen ? 'active' : ''}`}
+                                    onClick={() => setIsTimePickerOpen(!isTimePickerOpen)}
+                                >
+                                    <span className="time-value">
+                                        {selectedHour}:{selectedMinute} <span className="period">{selectedPeriod}</span>
+                                    </span>
+                                    <Clock size={20} className="time-icon" />
                                 </div>
+                                
+                                {isTimePickerOpen && (
+                                    <div className="custom-time-picker">
+                                        <div className="time-column">
+                                            <span className="col-label">Hour</span>
+                                            <div className="scroll-container">
+                                                {hours.map(h => (
+                                                    <button 
+                                                        key={h} 
+                                                        className={`time-btn ${selectedHour === h ? 'selected' : ''}`}
+                                                        onClick={() => setSelectedHour(h)}
+                                                    >
+                                                        {h}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div className="time-column">
+                                            <span className="col-label">Min</span>
+                                            <div className="scroll-container">
+                                                {minutes.map(m => (
+                                                    <button 
+                                                        key={m} 
+                                                        className={`time-btn ${selectedMinute === m ? 'selected' : ''}`}
+                                                        onClick={() => setSelectedMinute(m)}
+                                                    >
+                                                        {m}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div className="time-column period-col">
+                                            <button 
+                                                className={`period-btn ${selectedPeriod === 'AM' ? 'selected' : ''}`}
+                                                onClick={() => setSelectedPeriod('AM')}
+                                            >
+                                                AM
+                                            </button>
+                                            <button 
+                                                className={`period-btn ${selectedPeriod === 'PM' ? 'selected' : ''}`}
+                                                onClick={() => setSelectedPeriod('PM')}
+                                            >
+                                                PM
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
@@ -253,7 +351,6 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                                 className="primary-btn" 
                                 onClick={handleSave}
                                 disabled={
-                                    !time || 
                                     (taskType === 'custom' && !customTitle) || 
                                     (taskType === 'chapter' && (!selectedSubject || !selectedChapterSerial || !selectedMaterial))
                                 }
@@ -266,6 +363,35 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
             </div>
             
             <style>{`
+                /* Layout Fixes */
+                .modal-content.input-modal {
+                    display: flex;
+                    flex-direction: column;
+                    max-height: 85vh; /* Prevent overflowing screen */
+                }
+                .modal-body-scrollable {
+                    flex: 1;
+                    overflow-y: auto;
+                    padding: 1.5rem;
+                    /* Custom Scrollbar */
+                    scrollbar-width: thin;
+                    scrollbar-color: var(--border) transparent;
+                }
+                .modal-body-scrollable::-webkit-scrollbar {
+                    width: 6px;
+                }
+                .modal-body-scrollable::-webkit-scrollbar-thumb {
+                    background-color: var(--border);
+                    border-radius: 4px;
+                }
+                .modal-footer {
+                    padding: 1rem 1.5rem;
+                    border-top: 1px solid var(--border);
+                    background: var(--bg-secondary);
+                    border-radius: 0 0 12px 12px;
+                    flex-shrink: 0;
+                }
+
                 .task-type-selection {
                     display: grid;
                     grid-template-columns: 1fr 1fr;
@@ -312,12 +438,13 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                 }
                 .subject-option {
                     flex: 1;
-                    padding: 0.75rem;
+                    padding: 1rem 0.75rem; /* Larger padding */
                     border: 2px solid var(--border);
                     background: var(--bg-tertiary);
-                    border-radius: 8px;
+                    border-radius: 10px;
                     cursor: pointer;
-                    font-weight: 600;
+                    font-weight: 700; /* Bolder font */
+                    font-size: 1.1rem; /* Larger font */
                     color: var(--text-secondary);
                     transition: all 0.2s;
                 }
@@ -437,53 +564,153 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                     opacity: 0.6;
                 }
 
-                .custom-select {
-                    width: 100%;
-                    padding: 0.75rem;
-                    border-radius: 8px;
-                    border: 1px solid var(--border);
+                /* Material Pills */
+                .material-pills {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.75rem;
+                }
+                .material-pill {
+                    padding: 0.5rem 1rem;
                     background: var(--bg-tertiary);
-                    color: var(--text-primary);
-                    font-size: 1rem;
+                    border: 1px solid var(--border);
+                    border-radius: 20px;
+                    cursor: pointer;
+                    font-size: 0.9rem;
+                    color: var(--text-secondary);
+                    transition: all 0.2s;
+                }
+                .material-pill:hover {
+                    background: var(--bg-primary);
+                    border-color: var(--accent);
+                }
+                .material-pill.selected {
+                    background: var(--accent);
+                    color: white;
+                    border-color: var(--accent);
+                }
+                .no-materials {
+                    color: var(--text-muted);
+                    font-size: 0.9rem;
+                    font-style: italic;
                 }
 
-                .time-input-wrapper {
-                    position: relative;
+                /* Time Picker UI */
+                .time-display-box {
                     display: flex;
                     align-items: center;
-                }
-                .styled-time-input {
-                    width: 100%;
-                    padding: 0.75rem;
-                    padding-right: 2.5rem; /* Space for icon */
-                    border-radius: 8px;
-                    border: 1px solid var(--border);
+                    justify-content: space-between;
+                    padding: 1rem;
                     background: var(--bg-tertiary);
-                    color: var(--text-primary);
-                    font-size: 1rem;
-                    font-family: inherit;
-                    appearance: none; /* Attempt to standardise */
+                    border: 1px solid var(--border);
+                    border-radius: 8px;
+                    cursor: pointer;
+                    transition: all 0.2s;
                 }
-                .styled-time-input:focus {
-                    outline: none;
+                .time-display-box.active {
                     border-color: var(--accent);
                     box-shadow: 0 0 0 3px var(--accent-light);
+                    background: var(--bg-secondary);
                 }
-                .styled-time-input::-webkit-calendar-picker-indicator {
-                    opacity: 0; /* Hide native icon */
-                    position: absolute;
-                    right: 10px;
-                    width: 20px;
-                    height: 20px;
-                    cursor: pointer;
-                    z-index: 2;
+                .time-value {
+                    font-size: 1.2rem;
+                    font-weight: 600;
+                    color: var(--text-primary);
                 }
-                .input-icon-right {
-                    position: absolute;
-                    right: 12px;
+                .period {
+                    font-size: 0.9rem;
+                    color: var(--text-muted);
+                    margin-left: 2px;
+                }
+                .time-icon {
                     color: var(--accent);
-                    pointer-events: none;
-                    z-index: 1;
+                }
+
+                .custom-time-picker {
+                    display: flex;
+                    gap: 1rem;
+                    margin-top: 1rem;
+                    padding: 1rem;
+                    background: var(--bg-tertiary);
+                    border-radius: 8px;
+                    border: 1px solid var(--border);
+                    animation: slideDown 0.2s ease;
+                }
+                @keyframes slideDown {
+                    from { opacity: 0; transform: translateY(-10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+
+                .time-column {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 0.5rem;
+                }
+                .col-label {
+                    font-size: 0.75rem;
+                    font-weight: 600;
+                    color: var(--text-muted);
+                    text-transform: uppercase;
+                }
+                .scroll-container {
+                    height: 150px;
+                    overflow-y: auto;
+                    width: 100%;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+                    padding: 0 4px;
+                }
+                /* Hide scrollbar for cleaner UI */
+                .scroll-container::-webkit-scrollbar {
+                    display: none;
+                }
+                .scroll-container {
+                    -ms-overflow-style: none;
+                    scrollbar-width: none;
+                }
+
+                .time-btn {
+                    padding: 0.5rem;
+                    border: 1px solid transparent;
+                    border-radius: 6px;
+                    background: transparent;
+                    cursor: pointer;
+                    color: var(--text-secondary);
+                    font-weight: 500;
+                    transition: all 0.1s;
+                }
+                .time-btn:hover {
+                    background: var(--bg-primary);
+                    color: var(--text-primary);
+                }
+                .time-btn.selected {
+                    background: var(--accent);
+                    color: white;
+                    font-weight: 700;
+                }
+
+                .period-col {
+                    justify-content: center;
+                    gap: 0.75rem;
+                }
+                .period-btn {
+                    padding: 0.75rem 1rem;
+                    width: 100%;
+                    background: var(--bg-secondary);
+                    border: 1px solid var(--border);
+                    border-radius: 8px;
+                    cursor: pointer;
+                    font-weight: 600;
+                    color: var(--text-secondary);
+                    transition: all 0.2s;
+                }
+                .period-btn.selected {
+                    background: var(--accent);
+                    color: white;
+                    border-color: var(--accent);
                 }
             `}</style>
         </div>

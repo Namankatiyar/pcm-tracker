@@ -27,3 +27,16 @@ export interface SubjectData {
     chapters: Chapter[];
     materialNames: string[];
 }
+
+export interface PlannerTask {
+    id: string;
+    title: string;
+    subtitle?: string; // Material name for chapter tasks
+    date: string; // YYYY-MM-DD
+    time: string; // HH:mm
+    completed: boolean;
+    type: 'chapter' | 'custom';
+    subject?: Subject;
+    chapterSerial?: number;
+    material?: string;
+}

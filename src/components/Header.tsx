@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Subject } from '../types';
-import { LayoutDashboard, Atom, FlaskConical, Calculator, Sun, Moon, Palette, Settings } from 'lucide-react';
+import { LayoutDashboard, Atom, FlaskConical, Calculator, Sun, Moon, Palette, Settings, Calendar } from 'lucide-react';
 import { SettingsModal } from './SettingsModal';
 
 interface HeaderProps {
-    currentView: 'dashboard' | Subject;
-    onNavigate: (view: 'dashboard' | Subject) => void;
+    currentView: 'dashboard' | 'planner' | Subject;
+    onNavigate: (view: 'dashboard' | 'planner' | Subject) => void;
     theme: 'light' | 'dark';
     onThemeToggle: () => void;
     accentColor: string;
@@ -31,11 +31,12 @@ export function Header({ currentView, onNavigate, theme, onThemeToggle, accentCo
     const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-    const navItems: { key: 'dashboard' | Subject; label: string; icon: React.ReactNode }[] = [
+    const navItems: { key: 'dashboard' | 'planner' | Subject; label: string; icon: React.ReactNode }[] = [
         { key: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
         { key: 'physics', label: 'Physics', icon: <Atom size={20} /> },
         { key: 'chemistry', label: 'Chemistry', icon: <FlaskConical size={20} /> },
         { key: 'maths', label: 'Maths', icon: <Calculator size={20} /> },
+        { key: 'planner', label: 'Planner', icon: <Calendar size={20} /> },
     ];
 
     return (

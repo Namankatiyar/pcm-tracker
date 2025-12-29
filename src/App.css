@@ -322,7 +322,7 @@ body {
 
 .dashboard-stats-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
 }
 
@@ -469,7 +469,7 @@ body {
 }
 
 /* Responsive update */
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
   .dashboard-stats-row {
     grid-template-columns: 1fr;
   }
@@ -1395,5 +1395,232 @@ th.material-header, td.material-cell {
 .status-message.error {
     background: rgba(239, 68, 68, 0.1);
     color: #ef4444;
+}
+
+
+/* ===== Agenda Card ===== */
+.agenda-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 400px;
+}
+.agenda-header {
+  margin-bottom: 1rem;
+}
+.agenda-header h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+.agenda-header p {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+.agenda-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+/* Scrollbar styling for agenda list */
+.agenda-list::-webkit-scrollbar {
+  width: 4px;
+}
+.agenda-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.agenda-list::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+.agenda-list::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+.agenda-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+.agenda-item.completed {
+    opacity: 0.7;
+    background: var(--bg-primary);
+}
+.agenda-check {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.agenda-check:hover {
+  border-color: var(--accent);
+}
+.agenda-check.checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.agenda-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.agenda-title {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.agenda-item.completed .agenda-title {
+    text-decoration: line-through;
+    color: var(--text-muted);
+}
+.agenda-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.agenda-time {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--bg-primary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.empty-agenda {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-secondary);
+  text-align: center;
+  gap: 0.5rem;
+  padding: 2rem 0;
+}
+.empty-hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+
+/* ===== Buttons ===== */
+.primary-btn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.primary-btn:hover:not(:disabled) {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+.primary-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.secondary-btn {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius-sm);
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.secondary-btn:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--text-secondary);
+}
+
+/* ===== Input Modal Overrides ===== */
+.input-modal {
+    max-width: 500px;
+    width: 95%;
+}
+
+
+/* ===== Skeleton Task ===== */
+.skeleton-task {
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    padding: 0.75rem;
+    position: relative;
+    cursor: pointer;
+    border: 1px dashed var(--border);
+    transition: all 0.2s;
+    overflow: hidden;
+}
+.skeleton-task:hover {
+    border-color: var(--accent);
+    background: var(--bg-primary);
+}
+.skeleton-line {
+    height: 10px;
+    background: var(--border);
+    border-radius: 4px;
+    margin-bottom: 6px;
+    opacity: 0.5;
+}
+.skeleton-line.title { width: 70%; height: 12px; margin-bottom: 8px; }
+.skeleton-line.subtitle { width: 40%; }
+.skeleton-line.time { width: 20%; margin-top: 4px; }
+
+.skeleton-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 500;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+.skeleton-task:hover .skeleton-overlay {
+    opacity: 1;
+    color: var(--accent);
 }
 

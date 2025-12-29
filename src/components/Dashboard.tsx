@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ProgressRing } from './ProgressBar';
-import { Subject, SubjectData } from '../types';
+import { Subject, SubjectData, PlannerTask } from '../types';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { DatePickerModal } from './DatePickerModal';
-import { Atom, FlaskConical, Calculator, Zap, Calendar } from 'lucide-react';
+import { Atom, FlaskConical, Calculator, Zap, Calendar, Check, Clock } from 'lucide-react';
 
 interface DashboardProps {
     physicsProgress: number;
@@ -13,6 +13,8 @@ interface DashboardProps {
     subjectData: Record<Subject, SubjectData | null>;
     onNavigate: (subject: Subject) => void;
     quote?: { quote: string; author: string } | null;
+    plannerTasks: PlannerTask[];
+    onToggleTask: (taskId: string) => void;
 }
 
 export function Dashboard({
@@ -22,7 +24,9 @@ export function Dashboard({
     overallProgress,
     subjectData,
     onNavigate,
-    quote
+    quote,
+    plannerTasks,
+    onToggleTask
 }: DashboardProps) {
     const [examDate, setExamDate] = useLocalStorage<string>('jee-exam-date', '');
     const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
@@ -43,7 +47,6 @@ export function Dashboard({
         if (!examDate) return null;
         const target = new Date(examDate);
         const today = new Date();
-        // Reset hours to compare just the dates
         today.setHours(0, 0, 0, 0);
         target.setHours(0, 0, 0, 0);
         
@@ -55,7 +58,6 @@ export function Dashboard({
     const daysRemaining = calculateDaysRemaining();
 
     const getCountdownColor = (days: number) => {
-        // Map days to hue: 60 days -> 120 (Green), 30 days -> 60 (Yellow), 0 days -> 0 (Red)
         const hue = Math.min(Math.max(days * 2, 0), 120);
         return `hsl(${hue}, 80%, 45%)`;
     };
@@ -65,6 +67,9 @@ export function Dashboard({
         const date = new Date(dateString);
         return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     };
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const todaysTasks = plannerTasks.filter(t => t.date === todayStr).sort((a, b) => a.time.localeCompare(b.time));
 
     return (
         <div className="dashboard">
@@ -101,6 +106,40 @@ export function Dashboard({
                             <span className="stat-value">{overallProgress}%</span>
                             <span className="stat-label">Complete</span>
                         </div>
+                    </div>
+                </div>
+
+                <div className="agenda-card">
+                    <div className="agenda-header">
+                        <h2>Today's Agenda</h2>
+                        <p>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+                    </div>
+                    
+                    <div className="agenda-list">
+                        {todaysTasks.length > 0 ? (
+                            todaysTasks.map(task => (
+                                <div key={task.id} className={`agenda-item ${task.completed ? 'completed' : ''}`}>
+                                    <button 
+                                        className={`agenda-check ${task.completed ? 'checked' : ''}`}
+                                        onClick={() => onToggleTask(task.id)}
+                                    >
+                                        {task.completed && <Check size={12} />}
+                                    </button>
+                                    <div className="agenda-info">
+                                        <span className="agenda-title">{task.title}</span>
+                                        {task.subtitle && <span className="agenda-subtitle">{task.subtitle}</span>}
+                                    </div>
+                                    <div className="agenda-time">
+                                        {task.time}
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="empty-agenda">
+                                <p>No tasks scheduled for today.</p>
+                                <p className="empty-hint">Check the Planner to add tasks!</p>
+                            </div>
+                        )}
                     </div>
                 </div>
 

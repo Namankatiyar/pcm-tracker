@@ -2,13 +2,14 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Header } from './components/Header';
 import { Dashboard } from './components/Dashboard';
 import { SubjectPage } from './components/SubjectPage';
+import { Planner } from './components/Planner';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useProgress } from './hooks/useProgress';
 import { parseSubjectCSV } from './utils/csvParser';
-import { AppProgress, Subject, SubjectData, Priority } from './types';
+import { AppProgress, Subject, SubjectData, Priority, PlannerTask } from './types';
 import quotes from './quotes.json';
 
-type View = 'dashboard' | Subject;
+type View = 'dashboard' | 'planner' | Subject;
 
 const initialProgress: AppProgress = {
     physics: {},
@@ -21,6 +22,7 @@ function App() {
     const [currentView, setCurrentView] = useLocalStorage<View>('jee-tracker-view', 'dashboard');
     const [progress, setProgress] = useLocalStorage<AppProgress>('jee-tracker-progress', initialProgress);
     const [accentColor, setAccentColor] = useLocalStorage<string>('jee-tracker-accent', '#6366f1');
+    const [plannerTasks, setPlannerTasks] = useLocalStorage<PlannerTask[]>('jee-tracker-planner-tasks', []);
     const [customColumns, setCustomColumns] = useLocalStorage<Record<Subject, string[]>>('jee-tracker-custom-columns', {
         physics: [],
         chemistry: [],
@@ -121,6 +123,19 @@ function App() {
         setProgress(prev => {
             const subjectProgress = prev[subject];
             const chapterProgress = subjectProgress[chapterSerial] || { completed: {}, priority: 'none' as Priority };
+            
+            const isNowCompleted = !chapterProgress.completed[material];
+
+            // Sync with Planner
+            setPlannerTasks(tasks => tasks.map(t => {
+                if (t.type === 'chapter' && 
+                    t.subject === subject && 
+                    t.chapterSerial === chapterSerial && 
+                    t.material === material) {
+                    return { ...t, completed: isNowCompleted };
+                }
+                return t;
+            }));
 
             return {
                 ...prev,
@@ -130,13 +145,13 @@ function App() {
                         ...chapterProgress,
                         completed: {
                             ...chapterProgress.completed,
-                            [material]: !chapterProgress.completed[material],
+                            [material]: isNowCompleted,
                         },
                     },
                 },
             };
         });
-    }, [setProgress]);
+    }, [setProgress, setPlannerTasks]);
 
     const handleSetPriority = useCallback((subject: Subject, chapterSerial: number, priority: Priority) => {
         setProgress(prev => {
@@ -158,7 +173,6 @@ function App() {
 
     const handleAddColumn = useCallback((subject: Subject, columnName: string) => {
         if (!columnName.trim()) return;
-        // If it was excluded previously, remove from excluded list
         if (excludedColumns[subject]?.includes(columnName.trim())) {
              setExcludedColumns(prev => ({
                 ...prev,
@@ -193,6 +207,52 @@ function App() {
         setTheme(prev => prev === 'light' ? 'dark' : 'light');
     };
 
+    // Planner Handlers
+    const handleAddPlannerTask = (task: PlannerTask) => {
+        setPlannerTasks(prev => [...prev, task]);
+    };
+
+    const handleTogglePlannerTask = (taskId: string) => {
+        setPlannerTasks(prev => prev.map(t => {
+            if (t.id === taskId) {
+                const newStatus = !t.completed;
+                
+                // Sync with Chapter Progress if it's a chapter task
+                if (t.type === 'chapter' && t.subject && t.chapterSerial && t.material) {
+                    setProgress(prog => {
+                        const subjectProgress = prog[t.subject!];
+                        const chapterProgress = subjectProgress[t.chapterSerial!] || { completed: {}, priority: 'none' };
+                        
+                        return {
+                            ...prog,
+                            [t.subject!]: {
+                                ...subjectProgress,
+                                [t.chapterSerial!]: {
+                                    ...chapterProgress,
+                                    completed: {
+                                        ...chapterProgress.completed,
+                                        [t.material!]: newStatus
+                                    }
+                                }
+                            }
+                        };
+                    });
+                }
+                
+                return { ...t, completed: newStatus };
+            }
+            return t;
+        }));
+    };
+
+    const handleDeletePlannerTask = (taskId: string) => {
+        setPlannerTasks(prev => prev.filter(t => t.id !== taskId));
+    };
+
+    const handleEditPlannerTask = (updatedTask: PlannerTask) => {
+        setPlannerTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t));
+    };
+
     const renderContent = () => {
         if (currentView === 'dashboard') {
             return (
@@ -204,6 +264,21 @@ function App() {
                     subjectData={mergedSubjectData}
                     onNavigate={setCurrentView}
                     quote={dailyQuote}
+                    plannerTasks={plannerTasks}
+                    onToggleTask={handleTogglePlannerTask}
+                />
+            );
+        }
+
+        if (currentView === 'planner') {
+            return (
+                <Planner
+                    tasks={plannerTasks}
+                    onAddTask={handleAddPlannerTask}
+                    onEditTask={handleEditPlannerTask}
+                    onToggleTask={handleTogglePlannerTask}
+                    onDeleteTask={handleDeletePlannerTask}
+                    subjectData={mergedSubjectData}
                 />
             );
         }

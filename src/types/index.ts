@@ -39,4 +39,5 @@ export interface PlannerTask {
     subject?: Subject;
     chapterSerial?: number;
     material?: string;
+    completedAt?: string;
 }

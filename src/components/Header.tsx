@@ -24,7 +24,7 @@ const ACCENT_COLORS = [
     { name: 'Pink', value: '#ec4899' },
     { name: 'Lime', value: '#84cc16' },
     { name: 'Fuchsia', value: '#d946ef' },
-    { name: 'Sky', value: '#0ea5e9' },
+    { name: 'Blue', value: '#3b82f6' },
 ];
 
 export function Header({ currentView, onNavigate, theme, onThemeToggle, accentColor, onAccentChange }: HeaderProps) {
@@ -68,7 +68,7 @@ export function Header({ currentView, onNavigate, theme, onThemeToggle, accentCo
                             title="Change accent color"
                         >
                             <div className="current-color-indicator" style={{ backgroundColor: accentColor }}>
-                                <Palette size={20} color="white" style={{ opacity: 0.8 }} />
+                                <Palette size={20} color="var(--accent-text)" style={{ opacity: 0.8 }} />
                             </div>
                         </button>
 

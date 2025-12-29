@@ -85,6 +85,17 @@ function App() {
         document.documentElement.style.setProperty('--accent-light', `color-mix(in srgb, ${accentColor}, transparent 90%)`);
         document.documentElement.style.setProperty('--accent-hover', `color-mix(in srgb, ${accentColor}, black 10%)`);
         
+        // Calculate contrast text color
+        const hex = accentColor.replace('#', '');
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        const textColor = brightness > 128 ? '#000000' : '#ffffff';
+        const borderColor = brightness > 200 ? 'var(--border)' : accentColor;
+        document.documentElement.style.setProperty('--accent-text', textColor);
+        document.documentElement.style.setProperty('--accent-border', borderColor);
+
         // Update PWA theme color
         const metaThemeColor = document.querySelector("meta[name=theme-color]");
         if (metaThemeColor) {
@@ -133,7 +144,11 @@ function App() {
                     t.subject === subject && 
                     t.chapterSerial === chapterSerial && 
                     t.material === material) {
-                    return { ...t, completed: isNowCompleted };
+                    return { 
+                        ...t, 
+                        completed: isNowCompleted,
+                        completedAt: isNowCompleted ? new Date().toISOString() : undefined
+                    };
                 }
                 return t;
             }));
@@ -240,7 +255,11 @@ function App() {
                     });
                 }
                 
-                return { ...t, completed: newStatus };
+                return { 
+                    ...t, 
+                    completed: newStatus,
+                    completedAt: newStatus ? new Date().toISOString() : undefined
+                };
             }
             return t;
         }));

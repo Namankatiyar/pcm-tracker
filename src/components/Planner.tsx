@@ -161,7 +161,7 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
                 .view-btn {
                     padding: 12px 24px;
                     border-radius: 6px;
-                    border: none;
+                    border: 1px solid transparent;
                     background: transparent;
                     color: var(--text-secondary);
                     cursor: pointer;
@@ -171,7 +171,8 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
                 }
                 .view-btn.active {
                     background: var(--accent);
-                    color: white;
+                    color: var(--accent-text);
+                    border-color: var(--accent-border);
                     box-shadow: var(--shadow-md);
                 }
                 .date-controls {
@@ -242,10 +243,12 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
                     justify-content: center;
                     font-weight: 700;
                     color: var(--text-primary);
+                    border: 1px solid transparent;
                 }
                 .day-column.today .day-number {
                     background: var(--accent);
-                    color: white;
+                    color: var(--accent-text);
+                    border-color: var(--accent-border);
                 }
                 .header-add-btn {
                     background: transparent;
@@ -434,6 +437,13 @@ function DayColumn({ date, tasks, onAddTask, onEditTask, onToggleTask, onDeleteT
 }) {
     const isToday = new Date().toDateString() === date.toDateString();
 
+    const isOverdue = (task: PlannerTask) => {
+        if (task.completed) return false;
+        const now = new Date();
+        const taskDateTime = new Date(`${task.date}T${task.time}`);
+        return now > taskDateTime;
+    };
+
     return (
         <div className={`day-column ${isToday ? 'today' : ''} ${isExamDay ? 'exam-day-col' : ''}`}>
             <div className="day-header">
@@ -463,7 +473,10 @@ function DayColumn({ date, tasks, onAddTask, onEditTask, onToggleTask, onDeleteT
                         {tasks.map(task => (
                             <div key={task.id} className={`planner-task ${task.completed ? 'completed' : ''}`}>
                                 <div className="task-left">
-                                    <div className="task-title">{task.title}</div>
+                                    <div className="task-title">
+                                        {task.title}
+                                        {isOverdue(task) && <span className="pending-tag" style={{ marginLeft: '8px', fontSize: '0.65rem' }}>Pending</span>}
+                                    </div>
                                     {task.subtitle && (
                                         <div className="task-subtitle">
                                             {task.subject && (

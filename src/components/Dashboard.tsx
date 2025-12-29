@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ProgressRing } from './ProgressBar';
 import { Subject, SubjectData, PlannerTask } from '../types';
+import { TaskLog } from './TaskLog';
 import { DatePickerModal } from './DatePickerModal';
 import { Atom, FlaskConical, Calculator, Zap, Calendar, Check } from 'lucide-react';
 
@@ -80,6 +81,15 @@ export function Dashboard({
             return a.time.localeCompare(b.time);
         });
 
+    const isTaskOverdue = (task: PlannerTask) => {
+        if (task.completed) return false;
+        const now = new Date();
+        const [hours, minutes] = task.time.split(':').map(Number);
+        const taskTime = new Date();
+        taskTime.setHours(hours, minutes, 0, 0);
+        return now > taskTime;
+    };
+
     return (
         <div className="dashboard">
             <div className="dashboard-header">
@@ -135,7 +145,10 @@ export function Dashboard({
                                         {task.completed && <Check size={12} />}
                                     </button>
                                     <div className="agenda-info">
-                                        <span className="agenda-title">{task.title}</span>
+                                        <span className="agenda-title">
+                                            {task.title}
+                                            {isTaskOverdue(task) && <span className="pending-tag">Pending</span>}
+                                        </span>
                                         {task.subtitle && (
                                             <span className="agenda-subtitle">
                                                 {task.subject && (
@@ -232,6 +245,8 @@ export function Dashboard({
                     );
                 })}
             </div>
+
+            <TaskLog tasks={plannerTasks} />
 
             <div className="motivation-card">
                 <div className="motivation-icon"><Zap size={32} /></div>

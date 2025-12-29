@@ -70,7 +70,7 @@ export function InputModal({
                         className="modal-btn confirm" 
                         onClick={() => handleSubmit()}
                         disabled={!value.trim()}
-                        style={{ backgroundColor: 'var(--accent)' }} // Use accent color for positive action
+                        style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-text)', border: '1px solid var(--accent-border)' }} // Use accent color for positive action
                     >
                         {confirmLabel}
                     </button>

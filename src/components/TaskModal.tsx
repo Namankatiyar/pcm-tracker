@@ -586,8 +586,8 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                 }
                 .material-pill.selected {
                     background: var(--accent);
-                    color: white;
-                    border-color: var(--accent);
+                    color: var(--accent-text);
+                    border-color: var(--accent-border);
                 }
                 .no-materials {
                     color: var(--text-muted);
@@ -688,8 +688,9 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                 }
                 .time-btn.selected {
                     background: var(--accent);
-                    color: white;
+                    color: var(--accent-text);
                     font-weight: 700;
+                    border-color: var(--accent-border);
                 }
 
                 .period-col {
@@ -709,8 +710,8 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                 }
                 .period-btn.selected {
                     background: var(--accent);
-                    color: white;
-                    border-color: var(--accent);
+                    color: var(--accent-text);
+                    border-color: var(--accent-border);
                 }
             `}</style>
         </div>

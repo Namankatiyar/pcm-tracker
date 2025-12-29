@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ProgressRing } from './ProgressBar';
 import { Subject, SubjectData, PlannerTask } from '../types';
 import { DatePickerModal } from './DatePickerModal';
-import { Atom, FlaskConical, Calculator, Zap, Calendar, Check, Clock } from 'lucide-react';
+import { Atom, FlaskConical, Calculator, Zap, Calendar, Check } from 'lucide-react';
 
 interface DashboardProps {
     physicsProgress: number;

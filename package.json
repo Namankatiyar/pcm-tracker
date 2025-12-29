@@ -16,7 +16,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "package": "pkg ."
   },
   "dependencies": {
     "canvas-confetti": "^1.9.3",

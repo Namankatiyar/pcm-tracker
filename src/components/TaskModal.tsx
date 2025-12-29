@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
-import { X, BookOpen, Type, Clock, Search, ChevronRight, Check } from 'lucide-react';
-import { Subject, SubjectData, Chapter, PlannerTask } from '../types';
+import { useState, useEffect, useMemo } from 'react';
+import { X, BookOpen, Type, Clock, Search, ChevronRight } from 'lucide-react';
+import { Subject, SubjectData, PlannerTask } from '../types';
 
 interface TaskModalProps {
     isOpen: boolean;

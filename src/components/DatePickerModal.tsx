@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { formatDateLocal } from '../utils/date';
 
 interface DatePickerModalProps {
     isOpen: boolean;
@@ -15,9 +16,9 @@ export function DatePickerModal({ isOpen, selectedDate, onSelect, onClose }: Dat
         if (isOpen) {
             if (selectedDate) {
                 setViewDate(new Date(selectedDate));
-            } else {
-                setViewDate(new Date());
             }
+        } else {
+            setViewDate(new Date());
         }
     }, [isOpen, selectedDate]);
 
@@ -36,10 +37,7 @@ export function DatePickerModal({ isOpen, selectedDate, onSelect, onClose }: Dat
 
     const handleDateClick = (day: number) => {
         const date = new Date(viewDate.getFullYear(), viewDate.getMonth(), day);
-        // Format as YYYY-MM-DD using local time
-        const offset = date.getTimezoneOffset();
-        const localDate = new Date(date.getTime() - (offset * 60 * 1000));
-        const formattedDate = localDate.toISOString().split('T')[0];
+        const formattedDate = formatDateLocal(date);
         onSelect(formattedDate);
         onClose();
     };

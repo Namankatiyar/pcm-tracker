@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Plus, Check, Trash2, Calendar as CalendarIcon, Clock, Pencil } from 'lucide-react';
 import { PlannerTask, Subject, SubjectData } from '../types';
 import { TaskModal } from './TaskModal';
+import { formatDateLocal, formatTime12Hour } from '../utils/date';
 
 interface PlannerProps {
     tasks: PlannerTask[];
@@ -60,10 +61,6 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
         setCurrentDate(newDate);
     };
 
-    const formatDateISO = (date: Date) => {
-        return date.toISOString().split('T')[0];
-    };
-
     const getTasksForDate = (dateStr: string) => {
         return tasks.filter(t => t.date === dateStr).sort((a, b) => a.time.localeCompare(b.time));
     };
@@ -78,6 +75,13 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
         setTaskToEdit(task);
         setSelectedDateForTask(task.date);
         setIsTaskModalOpen(true);
+    };
+
+    const handleMoveTask = (taskId: string, newDateStr: string) => {
+        const task = tasks.find(t => t.id === taskId);
+        if (task && task.date !== newDateStr) {
+            onEditTask({ ...task, date: newDateStr });
+        }
     };
 
     const handleSaveTask = (task: PlannerTask) => {
@@ -128,12 +132,13 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
                         <DayColumn 
                             key={day.toISOString()} 
                             date={day} 
-                            tasks={getTasksForDate(formatDateISO(day))}
-                            onAddTask={() => handleAddTaskClick(formatDateISO(day))}
+                            tasks={getTasksForDate(formatDateLocal(day))}
+                            onAddTask={() => handleAddTaskClick(formatDateLocal(day))}
                             onEditTask={handleEditClick}
                             onToggleTask={onToggleTask}
                             onDeleteTask={onDeleteTask}
-                            isExamDay={formatDateISO(day) === examDate}
+                            onMoveTask={handleMoveTask}
+                            isExamDay={formatDateLocal(day) === examDate}
                         />
                     ))}
                 </div>
@@ -296,6 +301,10 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
                     transition: all 0.2s;
                     border: 1px solid transparent;
                     border-left-width: 3px;
+                    cursor: grab;
+                }
+                .planner-task:active {
+                    cursor: grabbing;
                 }
                 .planner-task:hover {
                     border-color: var(--border);
@@ -438,13 +447,14 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
     );
 }
 
-function DayColumn({ date, tasks, onAddTask, onEditTask, onToggleTask, onDeleteTask, isExamDay }: { 
+function DayColumn({ date, tasks, onAddTask, onEditTask, onToggleTask, onDeleteTask, isExamDay, onMoveTask }: { 
     date: Date, 
     tasks: PlannerTask[], 
     onAddTask: () => void,
     onEditTask: (task: PlannerTask) => void,
     onToggleTask: (id: string) => void,
     onDeleteTask: (id: string) => void,
+    onMoveTask: (taskId: string, newDate: string) => void,
     isExamDay: boolean
 }) {
     const isToday = new Date().toDateString() === date.toDateString();
@@ -456,8 +466,30 @@ function DayColumn({ date, tasks, onAddTask, onEditTask, onToggleTask, onDeleteT
         return now > taskDateTime;
     };
 
+    const handleDragStart = (e: React.DragEvent, taskId: string) => {
+        e.dataTransfer.setData('text/plain', taskId);
+        e.dataTransfer.effectAllowed = 'move';
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    };
+
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        const taskId = e.dataTransfer.getData('text/plain');
+        if (taskId) {
+            onMoveTask(taskId, formatDateLocal(date));
+        }
+    };
+
     return (
-        <div className={`day-column ${isToday ? 'today' : ''} ${isExamDay ? 'exam-day-col' : ''}`}>
+        <div 
+            className={`day-column ${isToday ? 'today' : ''} ${isExamDay ? 'exam-day-col' : ''}`}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+        >
             <div className="day-header">
                 <div className="day-header-left">
                     <span className="day-name">{date.toLocaleDateString('en-US', { weekday: 'short' })}</span>
@@ -483,7 +515,12 @@ function DayColumn({ date, tasks, onAddTask, onEditTask, onToggleTask, onDeleteT
                 {tasks.length > 0 ? (
                     <>
                         {tasks.map(task => (
-                            <div key={task.id} className={`planner-task ${task.completed ? 'completed' : ''}`}>
+                            <div 
+                                key={task.id} 
+                                className={`planner-task ${task.completed ? 'completed' : ''}`}
+                                draggable={true}
+                                onDragStart={(e) => handleDragStart(e, task.id)}
+                            >
                                 <div className="task-left">
                                     <div className="task-title">
                                         {task.title}
@@ -504,7 +541,7 @@ function DayColumn({ date, tasks, onAddTask, onEditTask, onToggleTask, onDeleteT
                                 <div className="task-right">
                                     <div className="task-meta">
                                         <Clock size={12} />
-                                        <span>{task.time}</span>
+                                        <span>{formatTime12Hour(task.time)}</span>
                                     </div>
                                     <div className="task-actions">
                                         <button 

@@ -6,6 +6,7 @@ import { Planner } from './components/Planner';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useProgress } from './hooks/useProgress';
 import { parseSubjectCSV } from './utils/csvParser';
+import { formatDateLocal } from './utils/date';
 import { AppProgress, Subject, SubjectData, Priority, PlannerTask } from './types';
 import quotes from './quotes.json';
 
@@ -226,7 +227,7 @@ function App() {
     };
 
     const handleQuickAddTask = () => {
-        setPlannerDateToOpen(new Date().toISOString().split('T')[0]);
+        setPlannerDateToOpen(formatDateLocal(new Date()));
         setCurrentView('planner');
     };
 

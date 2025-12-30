@@ -19,6 +19,7 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
     
     // Form States
     const [customTitle, setCustomTitle] = useState('');
+    const [customSubject, setCustomSubject] = useState<Subject | 'none'>('none');
     const [selectedSubject, setSelectedSubject] = useState<Subject | ''>('');
     const [selectedChapterSerial, setSelectedChapterSerial] = useState<number | ''>('');
     const [selectedMaterial, setSelectedMaterial] = useState('');
@@ -56,6 +57,7 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                 
                 if (taskToEdit.type === 'custom') {
                     setCustomTitle(taskToEdit.title);
+                    setCustomSubject(taskToEdit.subject || 'none');
                 } else {
                     setSelectedSubject(taskToEdit.subject || '');
                     setSelectedChapterSerial(taskToEdit.chapterSerial || '');
@@ -65,6 +67,7 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                 setStep(1);
                 setTaskType(null);
                 setCustomTitle('');
+                setCustomSubject('none');
                 setSelectedSubject('');
                 setSelectedChapterSerial('');
                 setSelectedMaterial('');
@@ -74,7 +77,14 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                 // Default time states
                 const now = new Date();
                 let h = now.getHours();
-                const m = Math.ceil(now.getMinutes() / 5) * 5; // Round to nearest 5
+                let m = Math.ceil(now.getMinutes() / 5) * 5; // Round to nearest 5
+                
+                if (m === 60) {
+                    m = 0;
+                    h += 1;
+                    if (h === 24) h = 0;
+                }
+
                 const p = h >= 12 ? 'PM' : 'AM';
                 if (h > 12) h -= 12;
                 if (h === 0) h = 12;
@@ -117,6 +127,7 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
             onSave({
                 ...baseTask,
                 title: customTitle,
+                subject: customSubject === 'none' ? undefined : customSubject
             });
         } else {
             if (!selectedSubject || selectedChapterSerial === '' || !selectedMaterial) return;
@@ -267,17 +278,44 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                                     )}
                                 </>
                             ) : (
-                                <div className="form-group">
-                                    <label>Task Name</label>
-                                    <input 
-                                        type="text" 
-                                        value={customTitle} 
-                                        onChange={e => setCustomTitle(e.target.value)}
-                                        placeholder="Enter task details..."
-                                        autoFocus
-                                        className="large-input"
-                                    />
-                                </div>
+                                <>
+                                    <div className="form-group">
+                                        <label>Task Name</label>
+                                        <input 
+                                            type="text" 
+                                            value={customTitle} 
+                                            onChange={e => setCustomTitle(e.target.value)}
+                                            placeholder="Enter task details..."
+                                            autoFocus
+                                            className="large-input"
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Subject (Optional)</label>
+                                        <div className="material-pills">
+                                            {(['physics', 'chemistry', 'maths'] as Subject[]).map((subj) => (
+                                                <button
+                                                    key={subj}
+                                                    className={`material-pill ${customSubject === subj ? 'selected' : ''}`}
+                                                    onClick={() => setCustomSubject(subj)}
+                                                    style={{ 
+                                                        borderColor: customSubject === subj ? `var(--${subj})` : 'var(--border)',
+                                                        backgroundColor: customSubject === subj ? `var(--${subj})` : 'var(--bg-tertiary)',
+                                                        color: customSubject === subj ? '#fff' : 'var(--text-secondary)'
+                                                    }}
+                                                >
+                                                    {subj.charAt(0).toUpperCase() + subj.slice(1)}
+                                                </button>
+                                            ))}
+                                            <button
+                                                className={`material-pill ${customSubject === 'none' ? 'selected' : ''}`}
+                                                onClick={() => setCustomSubject('none')}
+                                            >
+                                                None
+                                            </button>
+                                        </div>
+                                    </div>
+                                </>
                             )}
 
                             <div className="form-group">

@@ -40,4 +40,5 @@ export interface PlannerTask {
     chapterSerial?: number;
     material?: string;
     completedAt?: string;
+    wasShifted?: boolean; // True if this task was auto-moved from a past day
 }

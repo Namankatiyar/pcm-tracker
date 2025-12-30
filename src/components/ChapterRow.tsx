@@ -1,7 +1,5 @@
-import { useEffect, useRef } from 'react';
 import { Chapter, ChapterProgress, Priority } from '../types';
 import { PrioritySelector } from './PrioritySelector';
-import { triggerConfetti } from '../utils/confetti';
 import { Trash2, GripVertical } from 'lucide-react';
 
 interface ChapterRowProps {
@@ -37,19 +35,9 @@ export function ChapterRow({
 }: ChapterRowProps) {
     const completed = progress?.completed || {};
     const priority = progress?.priority || 'none';
-    const prevCompletedRef = useRef<number>(0);
 
     const completedCount = materialNames.filter(m => completed[m]).length;
-    const isFullyCompleted = completedCount === materialNames.length;
-
-    useEffect(() => {
-        const prevCompleted = prevCompletedRef.current;
-        if (isFullyCompleted && prevCompleted < materialNames.length && prevCompleted > 0) {
-            const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#6366f1';
-            triggerConfetti(accentColor);
-        }
-        prevCompletedRef.current = completedCount;
-    }, [completedCount, isFullyCompleted, materialNames.length]);
+    const isFullyCompleted = completedCount === materialNames.length && materialNames.length > 0;
 
     const getPriorityClass = () => {
         if (isEditing) return ''; // No priority styling in edit mode
@@ -58,7 +46,7 @@ export function ChapterRow({
     };
 
     return (
-        <tr 
+        <tr
             className={`chapter-row ${getPriorityClass()}`}
             draggable={isEditing}
             onDragStart={isEditing ? onDragStart : undefined}

@@ -96,13 +96,13 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
         <div className="planner-page">
             <div className="planner-header">
                 <div className="view-toggles">
-                    <button 
+                    <button
                         className={`view-btn ${viewMode === 'weekly' ? 'active' : ''}`}
                         onClick={() => setViewMode('weekly')}
                     >
                         Weekly
                     </button>
-                    <button 
+                    <button
                         className={`view-btn ${viewMode === 'monthly' ? 'active' : ''}`}
                         onClick={() => setViewMode('monthly')}
                     >
@@ -129,9 +129,9 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
             ) : (
                 <div className="weekly-grid">
                     {weekDays.map(day => (
-                        <DayColumn 
-                            key={day.toISOString()} 
-                            date={day} 
+                        <DayColumn
+                            key={day.toISOString()}
+                            date={day}
                             tasks={getTasksForDate(formatDateLocal(day))}
                             onAddTask={() => handleAddTaskClick(formatDateLocal(day))}
                             onEditTask={handleEditClick}
@@ -139,6 +139,7 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
                             onDeleteTask={onDeleteTask}
                             onMoveTask={handleMoveTask}
                             isExamDay={formatDateLocal(day) === examDate}
+                            isPastDay={day.setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0)}
                         />
                     ))}
                 </div>
@@ -447,20 +448,30 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
                     background: var(--bg-primary);
                     border-style: solid;
                 }
+                .day-column.past-day {
+                    opacity: 0.55;
+                    pointer-events: none;
+                    background: var(--bg-tertiary);
+                }
+                .day-column.past-day .day-number {
+                    background: var(--text-muted);
+                    color: var(--bg-primary);
+                }
             `}</style>
         </div>
     );
 }
 
-function DayColumn({ date, tasks, onAddTask, onEditTask, onToggleTask, onDeleteTask, isExamDay, onMoveTask }: { 
-    date: Date, 
-    tasks: PlannerTask[], 
+function DayColumn({ date, tasks, onAddTask, onEditTask, onToggleTask, onDeleteTask, isExamDay, onMoveTask, isPastDay }: {
+    date: Date,
+    tasks: PlannerTask[],
     onAddTask: () => void,
     onEditTask: (task: PlannerTask) => void,
     onToggleTask: (id: string) => void,
     onDeleteTask: (id: string) => void,
     onMoveTask: (taskId: string, newDate: string) => void,
-    isExamDay: boolean
+    isExamDay: boolean,
+    isPastDay: boolean
 }) {
     const [isDragOver, setIsDragOver] = useState(false);
     const isToday = new Date().toDateString() === date.toDateString();
@@ -497,8 +508,8 @@ function DayColumn({ date, tasks, onAddTask, onEditTask, onToggleTask, onDeleteT
     };
 
     return (
-        <div 
-            className={`day-column ${isToday ? 'today' : ''} ${isExamDay ? 'exam-day-col' : ''} ${isDragOver ? 'drag-over' : ''}`}
+        <div
+            className={`day-column ${isToday ? 'today' : ''} ${isExamDay ? 'exam-day-col' : ''} ${isDragOver ? 'drag-over' : ''} ${isPastDay ? 'past-day' : ''}`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
@@ -512,7 +523,7 @@ function DayColumn({ date, tasks, onAddTask, onEditTask, onToggleTask, onDeleteT
                     <Plus size={18} />
                 </button>
             </div>
-            
+
             <div className="tasks-list">
                 {isExamDay && (
                     <div className="exam-event-card">
@@ -528,8 +539,8 @@ function DayColumn({ date, tasks, onAddTask, onEditTask, onToggleTask, onDeleteT
                 {tasks.length > 0 ? (
                     <>
                         {tasks.map(task => (
-                            <div 
-                                key={task.id} 
+                            <div
+                                key={task.id}
                                 className={`planner-task ${task.completed ? 'completed' : ''}`}
                                 draggable={true}
                                 onDragStart={(e) => handleDragStart(e, task.id)}
@@ -537,39 +548,39 @@ function DayColumn({ date, tasks, onAddTask, onEditTask, onToggleTask, onDeleteT
                                 <div className="task-left">
                                     <div className="task-title">
                                         {task.title}
-                                        {isOverdue(task) && <span className="pending-tag" style={{ marginLeft: '8px', fontSize: '0.65rem' }}>Pending</span>}
+                                        {(isOverdue(task) || task.wasShifted) && <span className="pending-tag" style={{ marginLeft: '8px', fontSize: '0.65rem' }}>Pending</span>}
                                     </div>
                                     <div className="task-subtitle">
                                         {task.subject && (
-                                            <span className="subject-tag" style={{ color: `var(--${task.subject})`}}>
+                                            <span className="subject-tag" style={{ color: `var(--${task.subject})` }}>
                                                 {task.subject.charAt(0).toUpperCase() + task.subject.slice(1)} {task.subtitle ? '•' : ''}
                                             </span>
                                         )}
                                         {task.subtitle && <span className="material-name">{task.subtitle}</span>}
                                     </div>
                                 </div>
-                                
+
                                 <div className="task-right">
                                     <div className="task-meta">
                                         <Clock size={12} />
                                         <span>{formatTime12Hour(task.time)}</span>
                                     </div>
                                     <div className="task-actions">
-                                        <button 
-                                            className="task-btn check-btn" 
+                                        <button
+                                            className="task-btn check-btn"
                                             onClick={(e) => { e.stopPropagation(); onToggleTask(task.id); }}
                                             title={task.completed ? "Mark incomplete" : "Mark complete"}
                                         >
                                             <Check size={14} />
                                         </button>
-                                        <button 
+                                        <button
                                             className="task-btn edit-btn"
                                             onClick={(e) => { e.stopPropagation(); onEditTask(task); }}
                                             title="Edit task"
                                         >
                                             <Pencil size={14} />
                                         </button>
-                                        <button 
+                                        <button
                                             className="task-btn delete-btn"
                                             onClick={(e) => { e.stopPropagation(); onDeleteTask(task.id); }}
                                             title="Delete task"

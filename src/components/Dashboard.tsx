@@ -55,7 +55,7 @@ export function Dashboard({
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         target.setHours(0, 0, 0, 0);
-        
+
         const diffTime = target.getTime() - today.getTime();
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         return diffDays;
@@ -65,7 +65,7 @@ export function Dashboard({
 
     const getCountdownColor = (days: number) => {
         const hue = Math.min(Math.max(days * 2, 0), 120);
-        return `hsl(${hue}, 80%, 45%)`;
+        return `hsl(${hue}, 90%, 55%)`;
     };
 
     const formatDateDisplay = (dateString: string) => {
@@ -136,13 +136,13 @@ export function Dashboard({
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                             <h2>Today's Agenda</h2>
                             {plannerTasks.filter(t => t.date === todayStr).length > 0 && (
-                                <button 
+                                <button
                                     onClick={onQuickAdd}
                                     className="icon-btn"
-                                    style={{ 
-                                        background: 'var(--bg-tertiary)', 
-                                        border: '1px solid var(--border)', 
-                                        borderRadius: '50%', 
+                                    style={{
+                                        background: 'var(--bg-tertiary)',
+                                        border: '1px solid var(--border)',
+                                        borderRadius: '50%',
                                         padding: '0.4rem',
                                         color: 'var(--text-secondary)',
                                         cursor: 'pointer',
@@ -154,18 +154,18 @@ export function Dashboard({
                                     }}
                                     title="Add task"
                                 >
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
                                 </button>
                             )}
                         </div>
                         <p>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
                     </div>
-                    
+
                     <div className="agenda-list">
                         {todaysTasks.length > 0 ? (
                             todaysTasks.map(task => (
                                 <div key={task.id} className={`agenda-item ${task.completed ? 'completed' : ''}`}>
-                                    <button 
+                                    <button
                                         className={`agenda-check ${task.completed ? 'checked' : ''}`}
                                         onClick={() => onToggleTask(task.id)}
                                     >
@@ -178,8 +178,8 @@ export function Dashboard({
                                         </span>
                                         <div className="agenda-subtitle">
                                             {task.subject && (
-                                                <span style={{ 
-                                                    color: `var(--${task.subject})`, 
+                                                <span style={{
+                                                    color: `var(--${task.subject})`,
                                                     fontWeight: 600,
                                                     marginRight: '4px'
                                                 }}>
@@ -195,8 +195,8 @@ export function Dashboard({
                                 </div>
                             ))
                         ) : (
-                            <div 
-                                className="empty-agenda clickable" 
+                            <div
+                                className="empty-agenda clickable"
                                 onClick={onQuickAdd}
                                 style={{ cursor: 'pointer' }}
                                 title="Click to add a task"
@@ -213,13 +213,13 @@ export function Dashboard({
                         <h2>Exam Countdown</h2>
                         <p>Keep your eyes on the target</p>
                     </div>
-                    
+
                     <div className="countdown-content">
                         {daysRemaining !== null ? (
                             <div className="days-display">
-                                <span 
+                                <span
                                     className="days-value"
-                                    style={{ 
+                                    style={{
                                         color: getCountdownColor(daysRemaining),
                                         background: 'none',
                                         WebkitTextFillColor: 'initial'
@@ -234,10 +234,10 @@ export function Dashboard({
                                 Set your exam date to start counting down
                             </div>
                         )}
-                        
+
                         <div className="date-input-container">
                             <label htmlFor="exam-date-btn">Target Date:</label>
-                            <button 
+                            <button
                                 id="exam-date-btn"
                                 className="date-display-btn"
                                 onClick={() => setIsDatePickerOpen(true)}
@@ -286,7 +286,7 @@ export function Dashboard({
                 </div>
             </div>
 
-            <DatePickerModal 
+            <DatePickerModal
                 isOpen={isDatePickerOpen}
                 selectedDate={examDate}
                 onSelect={onExamDateChange}

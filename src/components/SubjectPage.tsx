@@ -4,6 +4,7 @@ import { ChapterRow } from './ChapterRow';
 import { ProgressBar } from './ProgressBar';
 import { ConfirmationModal } from './ConfirmationModal';
 import { InputModal } from './InputModal';
+import { triggerConfetti } from '../utils/confetti';
 import { Atom, FlaskConical, Calculator, Plus, X as XIcon, Pencil, Check } from 'lucide-react';
 
 interface SubjectPageProps {
@@ -43,7 +44,7 @@ export function SubjectPage({
 }: SubjectPageProps) {
     const config = subjectConfig[subject];
     const [isEditing, setIsEditing] = useState(false);
-    
+
     // Material Modals
     const [deleteMaterialState, setDeleteMaterialState] = useState<{ isOpen: boolean; material: string | null }>({
         isOpen: false,
@@ -79,6 +80,28 @@ export function SubjectPage({
         setIsAddMaterialModalOpen(false);
     };
 
+    // Wrapper to trigger confetti when completing a chapter
+    const handleToggleMaterialWithConfetti = (chapterSerial: number, material: string) => {
+        if (!data) return;
+
+        const chapterProgress = progress[chapterSerial]?.completed || {};
+        const wasCompleted = !!chapterProgress[material];
+
+        // Check if this toggle will complete the chapter
+        if (!wasCompleted) {
+            const completedCount = data.materialNames.filter(m => chapterProgress[m]).length;
+            const willBeComplete = completedCount + 1 === data.materialNames.length;
+
+            if (willBeComplete) {
+                const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#6366f1';
+                // Delay confetti slightly so the UI updates first
+                setTimeout(() => triggerConfetti(accentColor), 50);
+            }
+        }
+
+        onToggleMaterial(chapterSerial, material);
+    };
+
     const confirmDeleteMaterial = () => {
         if (onRemoveMaterial && deleteMaterialState.material) {
             onRemoveMaterial(deleteMaterialState.material);
@@ -109,17 +132,17 @@ export function SubjectPage({
 
     const handleDragEnter = (_e: React.DragEvent<HTMLTableRowElement>, index: number) => {
         dragOverItem.current = index;
-        
+
         // Optional: Implement live reordering here for smoother feel
         // For now, we will stick to reorder on drop or we can try live swap
         if (!onReorderChapters || !data) return;
-        
+
         if (dragItem.current !== null && dragItem.current !== index) {
             const newChapters = [...data.chapters];
             const draggedItemContent = newChapters[dragItem.current];
             newChapters.splice(dragItem.current, 1);
             newChapters.splice(index, 0, draggedItemContent);
-            
+
             onReorderChapters(newChapters);
             dragItem.current = index;
         }
@@ -167,7 +190,7 @@ export function SubjectPage({
                         <p>
                             {data.chapters.length} Chapters • {data.materialNames.length} Study Material(s)
                             {onAddMaterial && !isEditing && (
-                                <button 
+                                <button
                                     className="add-material-btn"
                                     onClick={() => setIsAddMaterialModalOpen(true)}
                                     title="Add new study material column"
@@ -197,7 +220,7 @@ export function SubjectPage({
                                     <div className="material-header-content">
                                         <span>{material}</span>
                                         {onRemoveMaterial && (
-                                            <button 
+                                            <button
                                                 className="remove-material-btn"
                                                 onClick={() => setDeleteMaterialState({ isOpen: true, material })}
                                                 title="Remove column"
@@ -221,7 +244,7 @@ export function SubjectPage({
                                 index={index}
                                 materialNames={data.materialNames}
                                 progress={progress[chapter.serial]}
-                                onToggleMaterial={onToggleMaterial}
+                                onToggleMaterial={handleToggleMaterialWithConfetti}
                                 onSetPriority={onSetPriority}
                                 isEditing={isEditing}
                                 onRename={(name) => onRenameChapter?.(chapter.serial, name)}
@@ -270,7 +293,7 @@ export function SubjectPage({
             </div>
 
             {/* Material Modals */}
-            <ConfirmationModal 
+            <ConfirmationModal
                 isOpen={deleteMaterialState.isOpen}
                 title="Remove Study Material"
                 message={`Are you sure you want to remove the '${deleteMaterialState.material}' column? This will hide it from your view.`}
@@ -288,7 +311,7 @@ export function SubjectPage({
             />
 
             {/* Chapter Modals */}
-            <ConfirmationModal 
+            <ConfirmationModal
                 isOpen={chapterToDelete.isOpen}
                 title="Delete Chapter"
                 message={`Are you sure you want to delete '${chapterToDelete.name}'? This action cannot be undone and you will lose all progress for this chapter.`}

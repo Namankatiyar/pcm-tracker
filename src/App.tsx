@@ -7,6 +7,7 @@ import { useLocalStorage } from './hooks/useLocalStorage';
 import { useProgress } from './hooks/useProgress';
 import { parseSubjectCSV } from './utils/csvParser';
 import { formatDateLocal } from './utils/date';
+import { triggerSmallConfetti } from './utils/confetti';
 import { AppProgress, Subject, SubjectData, Priority, PlannerTask } from './types';
 import quotes from './quotes.json';
 
@@ -43,7 +44,7 @@ function App() {
         chemistry: null,
         maths: null,
     });
-    
+
     const [dailyQuote, setDailyQuote] = useState<{ quote: string; author: string } | null>(null);
 
     // Load CSV data if not in local storage
@@ -78,6 +79,29 @@ function App() {
         localStorage.setItem('jee-tracker-quote-index', nextIndex.toString());
     }, []);
 
+    // Auto-shift incomplete tasks from past days to today
+    useEffect(() => {
+        const todayStr = formatDateLocal(new Date());
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        setPlannerTasks(currentTasks => {
+            let shifted = false;
+            const updatedTasks = currentTasks.map(task => {
+                if (task.completed) return task;
+                const taskDate = new Date(task.date);
+                taskDate.setHours(0, 0, 0, 0);
+                if (taskDate < today) {
+                    shifted = true;
+                    return { ...task, date: todayStr, wasShifted: true };
+                }
+                return task;
+            });
+            return shifted ? updatedTasks : currentTasks;
+        });
+    }, []); // Run once on mount
+
+
     // Apply theme
     useEffect(() => {
         document.documentElement.setAttribute('data-theme', theme);
@@ -88,7 +112,7 @@ function App() {
         document.documentElement.style.setProperty('--accent', accentColor);
         document.documentElement.style.setProperty('--accent-light', `color-mix(in srgb, ${accentColor}, transparent 90%)`);
         document.documentElement.style.setProperty('--accent-hover', `color-mix(in srgb, ${accentColor}, black 10%)`);
-        
+
         // Calculate contrast text color
         const hex = accentColor.replace('#', '');
         const r = parseInt(hex.substring(0, 2), 16);
@@ -113,14 +137,14 @@ function App() {
         (['physics', 'chemistry', 'maths'] as Subject[]).forEach(subject => {
             const data = subjectData[subject];
             if (!data) return;
-            
+
             const custom = customColumns[subject] || [];
             const excluded = excludedColumns[subject] || [];
-            
+
             // Prevent duplicates and filter excluded
             const uniqueCustom = custom.filter(c => !data.materialNames.includes(c));
             const allMaterials = [...data.materialNames, ...uniqueCustom].filter(m => !excluded.includes(m));
-            
+
             merged[subject] = {
                 ...data,
                 materialNames: allMaterials,
@@ -139,17 +163,17 @@ function App() {
         setProgress(prev => {
             const subjectProgress = prev[subject];
             const chapterProgress = subjectProgress[chapterSerial] || { completed: {}, priority: 'none' as Priority };
-            
+
             const isNowCompleted = !chapterProgress.completed[material];
 
             // Sync with Planner
             setPlannerTasks(tasks => tasks.map(t => {
-                if (t.type === 'chapter' && 
-                    t.subject === subject && 
-                    t.chapterSerial === chapterSerial && 
+                if (t.type === 'chapter' &&
+                    t.subject === subject &&
+                    t.chapterSerial === chapterSerial &&
                     t.material === material) {
-                    return { 
-                        ...t, 
+                    return {
+                        ...t,
                         completed: isNowCompleted,
                         completedAt: isNowCompleted ? new Date().toISOString() : undefined
                     };
@@ -194,7 +218,7 @@ function App() {
     const handleAddColumn = useCallback((subject: Subject, columnName: string) => {
         if (!columnName.trim()) return;
         if (excludedColumns[subject]?.includes(columnName.trim())) {
-             setExcludedColumns(prev => ({
+            setExcludedColumns(prev => ({
                 ...prev,
                 [subject]: prev[subject].filter(c => c !== columnName.trim())
             }));
@@ -209,7 +233,7 @@ function App() {
 
     const handleRemoveColumn = useCallback((subject: Subject, columnName: string) => {
         const isCustom = customColumns[subject]?.includes(columnName);
-        
+
         if (isCustom) {
             setCustomColumns(prev => ({
                 ...prev,
@@ -228,7 +252,7 @@ function App() {
         setSubjectData(prev => {
             const data = prev[subject];
             if (!data) return prev;
-            
+
             // Find max serial to ensure uniqueness
             const maxSerial = data.chapters.reduce((max, c) => Math.max(max, c.serial), 0);
             const newChapter = {
@@ -251,7 +275,7 @@ function App() {
         setSubjectData(prev => {
             const data = prev[subject];
             if (!data) return prev;
-            
+
             return {
                 ...prev,
                 [subject]: {
@@ -266,7 +290,7 @@ function App() {
         setSubjectData(prev => {
             const data = prev[subject];
             if (!data) return prev;
-            
+
             return {
                 ...prev,
                 [subject]: {
@@ -281,7 +305,7 @@ function App() {
         setSubjectData(prev => {
             const data = prev[subject];
             if (!data) return prev;
-            
+
             return {
                 ...prev,
                 [subject]: {
@@ -311,13 +335,19 @@ function App() {
         setPlannerTasks(prev => prev.map(t => {
             if (t.id === taskId) {
                 const newStatus = !t.completed;
-                
+
+                // Trigger small confetti when marking a task complete
+                if (newStatus) {
+                    const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#6366f1';
+                    triggerSmallConfetti(accentColor);
+                }
+
                 // Sync with Chapter Progress if it's a chapter task
                 if (t.type === 'chapter' && t.subject && t.chapterSerial && t.material) {
                     setProgress(prog => {
                         const subjectProgress = prog[t.subject!];
                         const chapterProgress = subjectProgress[t.chapterSerial!] || { completed: {}, priority: 'none' };
-                        
+
                         return {
                             ...prog,
                             [t.subject!]: {
@@ -333,10 +363,11 @@ function App() {
                         };
                     });
                 }
-                
-                return { 
-                    ...t, 
+
+                return {
+                    ...t,
                     completed: newStatus,
+                    wasShifted: newStatus ? false : t.wasShifted, // Clear shifted flag on completion
                     completedAt: newStatus ? new Date().toISOString() : undefined
                 };
             }

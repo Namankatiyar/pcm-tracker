@@ -672,6 +672,7 @@ body {
   background: var(--bg-tertiary);
   border-radius: 100px;
   overflow: hidden;
+  border: 1px solid var(--border);
 }
 
 .progress-bar-fill {
@@ -985,6 +986,11 @@ th.material-header, td.material-cell {
   border-radius: 4px;
   cursor: pointer;
   transition: all var(--transition-fast);
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 22px;
 }
 
 .priority-btn:hover {

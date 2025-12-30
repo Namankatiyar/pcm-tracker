@@ -28,3 +28,15 @@ export function triggerConfetti(accentColor: string = '#6366f1') {
         }
     })();
 }
+
+// Smaller confetti for task completion
+export function triggerSmallConfetti(accentColor: string = '#6366f1') {
+    const colors = [accentColor, '#ffffff', '#FFD700'];
+
+    confetti({
+        particleCount: 30,
+        spread: 60,
+        origin: { y: 0.6 },
+        colors: colors,
+    });
+}

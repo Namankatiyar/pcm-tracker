@@ -342,49 +342,60 @@ body {
 }
 
 /* Overall Progress Card Adjustments */
-.overall-content {
+.overall-progress-card {
+  height: 320px; /* Match agenda card height */
+}
+
+.overall-header, .agenda-header, .countdown-header {
+  margin-bottom: 0.5rem;
+  flex-shrink: 0;
+  min-height: 48px; /* Ensure consistent header height */
   display: flex;
-  justify-content: space-between;
-  align-items: center; /* Center progress ring and text vertically */
-  margin-bottom: 1rem;
-  gap: 1rem;
-  flex: 1; /* Allow content to grow to fill space */
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
-.overall-text {
-  margin-top: 2rem; /* Move text lower */
-}
-
-.overall-text h2 {
+.overall-header h2, .agenda-header h2, .countdown-header h2 {
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 0.25rem;
   line-height: 1.2;
 }
 
-.overall-text p {
+.overall-header p, .agenda-header p, .countdown-header p {
   color: var(--text-secondary);
   font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.overall-ring-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 0; /* Remove padding to save space */
+  overflow: hidden; /* Prevent overflow */
 }
 
 .overall-stats {
   display: flex;
   justify-content: space-between;
-  padding-top: 1rem;
+  padding-top: 0.75rem; /* Reduce padding */
   border-top: 1px solid var(--border);
   gap: 1rem;
+  margin-top: auto; /* Push to bottom */
 }
 
 .stat {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.15rem; /* Reduce gap */
   flex: 1;
 }
 
 .stat-value {
-  font-size: 1.5rem;
+  font-size: 1.35rem; /* Slightly smaller to fit */
   font-weight: 700;
   color: var(--accent);
 }
@@ -432,17 +443,11 @@ body {
 }
 
 /* Exam Countdown Card */
-.countdown-header h2 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-  line-height: 1.2;
+.exam-countdown-card {
+  height: 320px; /* Match other cards */
 }
 
-.countdown-header p {
-  color: var(--text-secondary);
-  font-size: 0.875rem;
-}
+/* Headers styles consolidated above */
 
 .countdown-content {
   display: flex;
@@ -1460,19 +1465,7 @@ th.material-header, td.material-cell {
   flex-direction: column;
   height: 320px; /* Constant height to align well with other cards */
 }
-.agenda-header {
-  margin-bottom: 1rem;
-  flex-shrink: 0;
-}
-.agenda-header h2 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-}
-.agenda-header p {
-  color: var(--text-secondary);
-  font-size: 0.875rem;
-}
+/* agenda-header styles are consolidated above */
 .agenda-list {
   flex: 1;
   display: flex;
@@ -1480,8 +1473,8 @@ th.material-header, td.material-cell {
   gap: 0.75rem;
   overflow-y: auto;
   padding-right: 4px;
-  /* Max height for approx 2 tasks to encourage scrolling on 3rd */
-  max-height: 160px;
+  /* Max height for approx 2.5 tasks to encourage scrolling on 3rd */
+  max-height: 220px;
 }
 /* Scrollbar styling for agenda list */
 .agenda-list::-webkit-scrollbar {
@@ -1570,7 +1563,7 @@ th.material-header, td.material-cell {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 160px; /* Match agenda-list max-height */
+  height: 220px; /* Match agenda-list max-height */
   color: var(--text-secondary);
   text-align: center;
   gap: 0.5rem;

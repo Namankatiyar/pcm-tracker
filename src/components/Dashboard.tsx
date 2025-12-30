@@ -108,12 +108,12 @@ export function Dashboard({
 
             <div className="dashboard-stats-row">
                 <div className="overall-progress-card">
-                    <div className="overall-content">
-                        <div className="overall-text">
-                            <h2>Overall Progress</h2>
-                            <p>Combined progress across all subjects</p>
-                        </div>
-                        <ProgressRing progress={overallProgress} size={140} strokeWidth={10} color="var(--accent)" />
+                    <div className="overall-header">
+                        <h2>Overall Progress</h2>
+                        <p>Combined progress across all subjects</p>
+                    </div>
+                    <div className="overall-ring-wrapper">
+                        <ProgressRing progress={overallProgress} size={150} strokeWidth={12} color="var(--accent)" />
                     </div>
                     <div className="overall-stats">
                         <div className="stat">

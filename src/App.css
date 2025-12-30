@@ -1417,11 +1417,11 @@ th.material-header, td.material-cell {
   box-shadow: var(--shadow-lg), var(--shadow-glow);
   display: flex;
   flex-direction: column;
-  height: 100%;
-  max-height: 400px;
+  height: 320px; /* Constant height to align well with other cards */
 }
 .agenda-header {
   margin-bottom: 1rem;
+  flex-shrink: 0;
 }
 .agenda-header h2 {
   font-size: 1.25rem;
@@ -1439,6 +1439,8 @@ th.material-header, td.material-cell {
   gap: 0.75rem;
   overflow-y: auto;
   padding-right: 4px;
+  /* Max height for approx 2 tasks to encourage scrolling on 3rd */
+  max-height: 160px;
 }
 /* Scrollbar styling for agenda list */
 .agenda-list::-webkit-scrollbar {
@@ -1527,7 +1529,7 @@ th.material-header, td.material-cell {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  height: 160px; /* Match agenda-list max-height */
   color: var(--text-secondary);
   text-align: center;
   gap: 0.5rem;

@@ -347,6 +347,7 @@ body {
 }
 
 .overall-header, .agenda-header, .countdown-header {
+  margin-top: 0; /* Reset any default margins */
   margin-bottom: 0.5rem;
   flex-shrink: 0;
   min-height: 48px; /* Ensure consistent header height */
@@ -356,6 +357,7 @@ body {
 }
 
 .overall-header h2, .agenda-header h2, .countdown-header h2 {
+  margin-top: 0;
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 0.25rem;
@@ -363,6 +365,7 @@ body {
 }
 
 .overall-header p, .agenda-header p, .countdown-header p {
+  margin: 0;
   color: var(--text-secondary);
   font-size: 0.875rem;
   line-height: 1.4;
@@ -373,17 +376,19 @@ body {
   align-items: center;
   justify-content: center;
   flex: 1;
-  padding: 0; /* Remove padding to save space */
-  overflow: hidden; /* Prevent overflow */
+  padding: 0;
+  padding-bottom: 0.75rem; /* Add padding to balance top/bottom spacing relative to header/stats */
+  margin: 0; 
+  overflow: hidden;
 }
 
 .overall-stats {
   display: flex;
   justify-content: space-between;
-  padding-top: 0.75rem; /* Reduce padding */
+  padding-top: 0.75rem;
   border-top: 1px solid var(--border);
   gap: 1rem;
-  margin-top: auto; /* Push to bottom */
+  margin-top: 0; /* Remove auto margin to let flex:1 wrapper center the ring */
 }
 
 .stat {

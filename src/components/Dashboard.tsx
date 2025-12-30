@@ -113,7 +113,7 @@ export function Dashboard({
                         <p>Combined progress across all subjects</p>
                     </div>
                     <div className="overall-ring-wrapper">
-                        <ProgressRing progress={overallProgress} size={150} strokeWidth={12} color="var(--accent)" />
+                        <ProgressRing progress={overallProgress} size={130} strokeWidth={10} color="var(--accent)" />
                     </div>
                     <div className="overall-stats">
                         <div className="stat">
@@ -132,41 +132,33 @@ export function Dashboard({
                 </div>
 
                 <div className="agenda-card">
-                    <div className="agenda-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <div>
+                    <div className="agenda-header">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                             <h2>Today's Agenda</h2>
-                            <p>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+                            {plannerTasks.filter(t => t.date === todayStr).length > 0 && (
+                                <button 
+                                    onClick={onQuickAdd}
+                                    className="icon-btn"
+                                    style={{ 
+                                        background: 'var(--bg-tertiary)', 
+                                        border: '1px solid var(--border)', 
+                                        borderRadius: '50%', 
+                                        padding: '0.4rem',
+                                        color: 'var(--text-secondary)',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        transition: 'all 0.2s',
+                                        flexShrink: 0
+                                    }}
+                                    title="Add task"
+                                >
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                                </button>
+                            )}
                         </div>
-                        {todaysTasks.length > 0 && (
-                            <button 
-                                onClick={onQuickAdd}
-                                className="icon-btn"
-                                style={{ 
-                                    background: 'var(--bg-tertiary)', 
-                                    border: '1px solid var(--border)', 
-                                    borderRadius: '50%', 
-                                    padding: '0.5rem',
-                                    color: 'var(--text-secondary)',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    transition: 'all 0.2s'
-                                }}
-                                title="Add task"
-                                onMouseEnter={e => {
-                                    e.currentTarget.style.borderColor = 'var(--accent)';
-                                    e.currentTarget.style.color = 'var(--accent)';
-                                }}
-                                onMouseLeave={e => {
-                                    e.currentTarget.style.borderColor = 'var(--border)';
-                                    e.currentTarget.style.color = 'var(--text-secondary)';
-                                }}
-                            >
-                                <Check size={16} style={{ display: 'none' }} /> {/* Dummy for import check? No, I need Plus */}
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-                            </button>
-                        )}
+                        <p>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
                     </div>
                     
                     <div className="agenda-list">

@@ -23,17 +23,7 @@ export function TaskLog({ tasks }: TaskLogProps) {
     };
 
     return (
-        <div className="task-log-card" style={{
-            background: 'var(--bg-secondary)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--border-radius)',
-            padding: '1.5rem',
-            boxShadow: 'var(--shadow-lg), var(--shadow-glow)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1rem',
-            maxHeight: '400px'
-        }}>
+        <div className="task-log-card">
             <div className="agenda-header" style={{ marginBottom: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <History size={20} style={{ color: 'var(--accent)' }} />
@@ -42,7 +32,7 @@ export function TaskLog({ tasks }: TaskLogProps) {
                 <p>History of completed tasks</p>
             </div>
 
-            <div className="agenda-list">
+            <div className="task-log-list">
                 {completedTasks.length > 0 ? (
                     completedTasks.map(task => (
                         <div key={task.id} className="agenda-item" style={{ background: 'var(--bg-tertiary)' }}>
@@ -51,20 +41,18 @@ export function TaskLog({ tasks }: TaskLogProps) {
                             </div>
                             <div className="agenda-info">
                                 <span className="agenda-title" style={{ color: 'var(--text-primary)' }}>{task.title}</span>
-                                {task.subtitle && (
-                                    <span className="agenda-subtitle">
-                                         {task.subject && (
-                                            <span style={{ 
-                                                color: `var(--${task.subject})`, 
-                                                fontWeight: 600,
-                                                marginRight: '4px'
-                                            }}>
-                                                {task.subject.charAt(0).toUpperCase() + task.subject.slice(1)} •
-                                            </span>
-                                        )}
-                                        {task.subtitle}
-                                    </span>
-                                )}
+                                <div className="agenda-subtitle">
+                                     {task.subject && (
+                                        <span style={{ 
+                                            color: `var(--${task.subject})`, 
+                                            fontWeight: 600,
+                                            marginRight: '4px'
+                                        }}>
+                                            {task.subject.charAt(0).toUpperCase() + task.subject.slice(1)} {task.subtitle ? '•' : ''}
+                                        </span>
+                                    )}
+                                    {task.subtitle && task.subtitle}
+                                </div>
                             </div>
                             <div className="agenda-time" style={{ fontSize: '0.7rem' }}>
                                 {task.completedAt ? formatCompletedDate(task.completedAt) : task.date}

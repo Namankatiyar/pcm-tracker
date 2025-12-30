@@ -345,9 +345,14 @@ body {
 .overall-content {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center; /* Center progress ring and text vertically */
   margin-bottom: 1rem;
   gap: 1rem;
+  flex: 1; /* Allow content to grow to fill space */
+}
+
+.overall-text {
+  margin-top: 2rem; /* Move text lower */
 }
 
 .overall-text h2 {
@@ -388,6 +393,42 @@ body {
   font-size: 0.75rem;
   color: var(--text-muted);
   text-align: center;
+}
+
+/* ===== Task Log Card ===== */
+.task-log-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-lg), var(--shadow-glow);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.task-log-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  overflow-y: auto;
+  padding-right: 4px;
+  /* Fixed max-height for approx 5 tasks (approx 68px each) */
+  max-height: 350px; 
+}
+
+.task-log-list::-webkit-scrollbar {
+  width: 4px;
+}
+.task-log-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.task-log-list::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+.task-log-list::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
 }
 
 /* Exam Countdown Card */

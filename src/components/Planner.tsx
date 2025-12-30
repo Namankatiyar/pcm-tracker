@@ -267,6 +267,11 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
                     color: var(--accent-text);
                     border-color: var(--accent-border);
                 }
+                .day-column.drag-over {
+                    border-color: var(--accent);
+                    background: var(--accent-light);
+                    box-shadow: 0 0 0 2px var(--accent-light);
+                }
                 .header-add-btn {
                     background: transparent;
                     border: none;
@@ -457,6 +462,7 @@ function DayColumn({ date, tasks, onAddTask, onEditTask, onToggleTask, onDeleteT
     onMoveTask: (taskId: string, newDate: string) => void,
     isExamDay: boolean
 }) {
+    const [isDragOver, setIsDragOver] = useState(false);
     const isToday = new Date().toDateString() === date.toDateString();
 
     const isOverdue = (task: PlannerTask) => {
@@ -474,10 +480,16 @@ function DayColumn({ date, tasks, onAddTask, onEditTask, onToggleTask, onDeleteT
     const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
+        setIsDragOver(true);
+    };
+
+    const handleDragLeave = () => {
+        setIsDragOver(false);
     };
 
     const handleDrop = (e: React.DragEvent) => {
         e.preventDefault();
+        setIsDragOver(false);
         const taskId = e.dataTransfer.getData('text/plain');
         if (taskId) {
             onMoveTask(taskId, formatDateLocal(date));
@@ -486,8 +498,9 @@ function DayColumn({ date, tasks, onAddTask, onEditTask, onToggleTask, onDeleteT
 
     return (
         <div 
-            className={`day-column ${isToday ? 'today' : ''} ${isExamDay ? 'exam-day-col' : ''}`}
+            className={`day-column ${isToday ? 'today' : ''} ${isExamDay ? 'exam-day-col' : ''} ${isDragOver ? 'drag-over' : ''}`}
             onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
             onDrop={handleDrop}
         >
             <div className="day-header">
@@ -526,16 +539,14 @@ function DayColumn({ date, tasks, onAddTask, onEditTask, onToggleTask, onDeleteT
                                         {task.title}
                                         {isOverdue(task) && <span className="pending-tag" style={{ marginLeft: '8px', fontSize: '0.65rem' }}>Pending</span>}
                                     </div>
-                                    {task.subtitle && (
-                                        <div className="task-subtitle">
-                                            {task.subject && (
-                                                <span className="subject-tag" style={{ color: `var(--${task.subject})`}}>
-                                                    {task.subject.charAt(0).toUpperCase() + task.subject.slice(1)} •
-                                                </span>
-                                            )}
-                                            <span className="material-name">{task.subtitle}</span>
-                                        </div>
-                                    )}
+                                    <div className="task-subtitle">
+                                        {task.subject && (
+                                            <span className="subject-tag" style={{ color: `var(--${task.subject})`}}>
+                                                {task.subject.charAt(0).toUpperCase() + task.subject.slice(1)} {task.subtitle ? '•' : ''}
+                                            </span>
+                                        )}
+                                        {task.subtitle && <span className="material-name">{task.subtitle}</span>}
+                                    </div>
                                 </div>
                                 
                                 <div className="task-right">

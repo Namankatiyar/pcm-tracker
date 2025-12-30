@@ -184,20 +184,18 @@ export function Dashboard({
                                             {task.title}
                                             {isTaskOverdue(task) && <span className="pending-tag">Pending</span>}
                                         </span>
-                                        {task.subtitle && (
-                                            <span className="agenda-subtitle">
-                                                {task.subject && (
-                                                    <span style={{ 
-                                                        color: `var(--${task.subject})`, 
-                                                        fontWeight: 600,
-                                                        marginRight: '4px'
-                                                    }}>
-                                                        {task.subject.charAt(0).toUpperCase() + task.subject.slice(1)} •
-                                                    </span>
-                                                )}
-                                                {task.subtitle}
-                                            </span>
-                                        )}
+                                        <div className="agenda-subtitle">
+                                            {task.subject && (
+                                                <span style={{ 
+                                                    color: `var(--${task.subject})`, 
+                                                    fontWeight: 600,
+                                                    marginRight: '4px'
+                                                }}>
+                                                    {task.subject.charAt(0).toUpperCase() + task.subject.slice(1)} {task.subtitle ? '•' : ''}
+                                                </span>
+                                            )}
+                                            {task.subtitle && task.subtitle}
+                                        </div>
                                     </div>
                                     <div className="agenda-time">
                                         {formatTime12Hour(task.time)}

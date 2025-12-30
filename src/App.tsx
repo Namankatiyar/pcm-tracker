@@ -38,7 +38,7 @@ function App() {
 
     const [plannerDateToOpen, setPlannerDateToOpen] = useState<string | null>(null);
 
-    const [subjectData, setSubjectData] = useState<Record<Subject, SubjectData | null>>({
+    const [subjectData, setSubjectData] = useLocalStorage<Record<Subject, SubjectData | null>>('jee-tracker-subject-data', {
         physics: null,
         chemistry: null,
         maths: null,
@@ -46,9 +46,10 @@ function App() {
     
     const [dailyQuote, setDailyQuote] = useState<{ quote: string; author: string } | null>(null);
 
-    // Load CSV data
+    // Load CSV data if not in local storage
     useEffect(() => {
         const loadSubjectData = async (subject: Subject) => {
+            if (subjectData[subject]) return;
             try {
                 const data = await parseSubjectCSV(subject);
                 setSubjectData(prev => ({ ...prev, [subject]: data }));
@@ -60,7 +61,7 @@ function App() {
         loadSubjectData('physics');
         loadSubjectData('chemistry');
         loadSubjectData('maths');
-    }, []);
+    }, []); // Run once on mount. If subjectData is already there, it won't reload.
 
     // Load Quote Once per Session/Load
     useEffect(() => {
@@ -222,6 +223,76 @@ function App() {
         }
     }, [customColumns, setCustomColumns, setExcludedColumns]);
 
+    // Chapter Management Handlers
+    const handleAddChapter = useCallback((subject: Subject, name: string) => {
+        setSubjectData(prev => {
+            const data = prev[subject];
+            if (!data) return prev;
+            
+            // Find max serial to ensure uniqueness
+            const maxSerial = data.chapters.reduce((max, c) => Math.max(max, c.serial), 0);
+            const newChapter = {
+                serial: maxSerial + 1,
+                name: name.trim(),
+                materials: data.materialNames // Initially inherit current materials
+            };
+
+            return {
+                ...prev,
+                [subject]: {
+                    ...data,
+                    chapters: [...data.chapters, newChapter]
+                }
+            };
+        });
+    }, [setSubjectData]);
+
+    const handleRemoveChapter = useCallback((subject: Subject, serial: number) => {
+        setSubjectData(prev => {
+            const data = prev[subject];
+            if (!data) return prev;
+            
+            return {
+                ...prev,
+                [subject]: {
+                    ...data,
+                    chapters: data.chapters.filter(c => c.serial !== serial)
+                }
+            };
+        });
+    }, [setSubjectData]);
+
+    const handleRenameChapter = useCallback((subject: Subject, serial: number, newName: string) => {
+        setSubjectData(prev => {
+            const data = prev[subject];
+            if (!data) return prev;
+            
+            return {
+                ...prev,
+                [subject]: {
+                    ...data,
+                    chapters: data.chapters.map(c => c.serial === serial ? { ...c, name: newName.trim() } : c)
+                }
+            };
+        });
+    }, [setSubjectData]);
+
+    const handleReorderChapters = useCallback((subject: Subject, newOrderChapters: any[]) => {
+        setSubjectData(prev => {
+            const data = prev[subject];
+            if (!data) return prev;
+            
+            return {
+                ...prev,
+                [subject]: {
+                    ...data,
+                    chapters: newOrderChapters
+                }
+            };
+        });
+    }, [setSubjectData]);
+
+
     const handleThemeToggle = () => {
         setTheme(prev => prev === 'light' ? 'dark' : 'light');
     };
@@ -328,6 +399,10 @@ function App() {
                 onSetPriority={(serial, priority) => handleSetPriority(subject, serial, priority)}
                 onAddMaterial={(name) => handleAddColumn(subject, name)}
                 onRemoveMaterial={(name) => handleRemoveColumn(subject, name)}
+                onAddChapter={(name) => handleAddChapter(subject, name)}
+                onRemoveChapter={(serial) => handleRemoveChapter(subject, serial)}
+                onRenameChapter={(serial, name) => handleRenameChapter(subject, serial, name)}
+                onReorderChapters={(chapters) => handleReorderChapters(subject, chapters)}
             />
         );
     };

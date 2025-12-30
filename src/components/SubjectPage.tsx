@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { Subject, SubjectData, SubjectProgress, Priority } from '../types';
+import { useState, useRef } from 'react';
+import { Subject, SubjectData, SubjectProgress, Priority, Chapter } from '../types';
 import { ChapterRow } from './ChapterRow';
 import { ProgressBar } from './ProgressBar';
 import { ConfirmationModal } from './ConfirmationModal';
 import { InputModal } from './InputModal';
-import { Atom, FlaskConical, Calculator, Plus, X as XIcon } from 'lucide-react';
+import { Atom, FlaskConical, Calculator, Plus, X as XIcon, Pencil, Check } from 'lucide-react';
 
 interface SubjectPageProps {
     subject: Subject;
@@ -15,6 +15,10 @@ interface SubjectPageProps {
     onSetPriority: (chapterSerial: number, priority: Priority) => void;
     onAddMaterial?: (name: string) => void;
     onRemoveMaterial?: (name: string) => void;
+    onAddChapter?: (name: string) => void;
+    onRemoveChapter?: (serial: number) => void;
+    onRenameChapter?: (serial: number, name: string) => void;
+    onReorderChapters?: (chapters: Chapter[]) => void;
 }
 
 const subjectConfig: Record<Subject, { label: string; icon: React.ReactNode; color: string }> = {
@@ -31,14 +35,33 @@ export function SubjectPage({
     onToggleMaterial,
     onSetPriority,
     onAddMaterial,
-    onRemoveMaterial
+    onRemoveMaterial,
+    onAddChapter,
+    onRemoveChapter,
+    onRenameChapter,
+    onReorderChapters
 }: SubjectPageProps) {
     const config = subjectConfig[subject];
-    const [deleteModalState, setDeleteModalState] = useState<{ isOpen: boolean; material: string | null }>({
+    const [isEditing, setIsEditing] = useState(false);
+    
+    // Material Modals
+    const [deleteMaterialState, setDeleteMaterialState] = useState<{ isOpen: boolean; material: string | null }>({
         isOpen: false,
         material: null
     });
-    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isAddMaterialModalOpen, setIsAddMaterialModalOpen] = useState(false);
+
+    // Chapter Modals
+    const [isAddChapterModalOpen, setIsAddChapterModalOpen] = useState(false);
+    const [chapterToDelete, setChapterToDelete] = useState<{ isOpen: boolean; serial: number | null; name: string }>({
+        isOpen: false,
+        serial: null,
+        name: ''
+    });
+
+    // Drag and Drop
+    const dragItem = useRef<number | null>(null);
+    const dragOverItem = useRef<number | null>(null);
 
     if (!data) {
         return (
@@ -53,14 +76,58 @@ export function SubjectPage({
         if (onAddMaterial && name && name.trim()) {
             onAddMaterial(name.trim());
         }
-        setIsAddModalOpen(false);
+        setIsAddMaterialModalOpen(false);
     };
 
-    const confirmDelete = () => {
-        if (onRemoveMaterial && deleteModalState.material) {
-            onRemoveMaterial(deleteModalState.material);
+    const confirmDeleteMaterial = () => {
+        if (onRemoveMaterial && deleteMaterialState.material) {
+            onRemoveMaterial(deleteMaterialState.material);
         }
-        setDeleteModalState({ isOpen: false, material: null });
+        setDeleteMaterialState({ isOpen: false, material: null });
+    };
+
+    const handleAddChapter = (name: string) => {
+        if (onAddChapter && name && name.trim()) {
+            onAddChapter(name.trim());
+        }
+        setIsAddChapterModalOpen(false);
+    };
+
+    const confirmDeleteChapter = () => {
+        if (onRemoveChapter && chapterToDelete.serial !== null) {
+            onRemoveChapter(chapterToDelete.serial);
+        }
+        setChapterToDelete({ isOpen: false, serial: null, name: '' });
+    };
+
+    const handleDragStart = (e: React.DragEvent<HTMLTableRowElement>, index: number) => {
+        dragItem.current = index;
+        e.dataTransfer.effectAllowed = "move";
+        // Make the drag image transparent or styled if needed, but default is usually okay
+        // e.dataTransfer.setDragImage(e.currentTarget, 0, 0); 
+    };
+
+    const handleDragEnter = (_e: React.DragEvent<HTMLTableRowElement>, index: number) => {
+        dragOverItem.current = index;
+        
+        // Optional: Implement live reordering here for smoother feel
+        // For now, we will stick to reorder on drop or we can try live swap
+        if (!onReorderChapters || !data) return;
+        
+        if (dragItem.current !== null && dragItem.current !== index) {
+            const newChapters = [...data.chapters];
+            const draggedItemContent = newChapters[dragItem.current];
+            newChapters.splice(dragItem.current, 1);
+            newChapters.splice(index, 0, draggedItemContent);
+            
+            onReorderChapters(newChapters);
+            dragItem.current = index;
+        }
+    };
+
+    const handleDragEnd = () => {
+        dragItem.current = null;
+        dragOverItem.current = null;
     };
 
     return (
@@ -69,24 +136,53 @@ export function SubjectPage({
                 <div className="subject-title">
                     <span className="subject-icon-large">{config.icon}</span>
                     <div>
-                        <h1>{config.label}</h1>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <h1>{config.label}</h1>
+                            {onAddChapter && (
+                                <button
+                                    onClick={() => setIsEditing(!isEditing)}
+                                    className="icon-btn"
+                                    style={{
+                                        background: isEditing ? 'var(--accent)' : 'var(--bg-tertiary)',
+                                        color: isEditing ? 'var(--accent-text)' : 'var(--text-secondary)',
+                                        border: `1px solid ${isEditing ? 'var(--accent)' : 'var(--border)'}`,
+                                        borderRadius: '6px',
+                                        padding: '0.2rem 0.5rem',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.35rem',
+                                        transition: 'all 0.2s',
+                                        height: '28px'
+                                    }}
+                                    title={isEditing ? "Done Editing" : "Edit Chapters"}
+                                >
+                                    {isEditing ? <Check size={14} /> : <Pencil size={14} />}
+                                    <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>
+                                        {isEditing ? 'Done' : 'Edit'}
+                                    </span>
+                                </button>
+                            )}
+                        </div>
                         <p>
-                            {data.chapters.length} Chapters • {data.materialNames.length} Study Materials
-                            {onAddMaterial && (
+                            {data.chapters.length} Chapters • {data.materialNames.length} Study Material(s)
+                            {onAddMaterial && !isEditing && (
                                 <button 
                                     className="add-material-btn"
-                                    onClick={() => setIsAddModalOpen(true)}
+                                    onClick={() => setIsAddMaterialModalOpen(true)}
                                     title="Add new study material column"
                                 >
                                     <Plus size={16} style={{ marginRight: '4px' }} />
-                                    Add
+                                    Add Material
                                 </button>
                             )}
                         </p>
                     </div>
                 </div>
-                <div className="subject-progress-summary">
-                    <ProgressBar progress={subjectProgress} height={12} />
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                    <div className="subject-progress-summary">
+                        <ProgressBar progress={subjectProgress} height={12} />
+                    </div>
                 </div>
             </div>
 
@@ -96,14 +192,14 @@ export function SubjectPage({
                         <tr>
                             <th className="serial-header">#</th>
                             <th className="chapter-header">Chapter</th>
-                            {data.materialNames.map((material) => (
+                            {!isEditing && data.materialNames.map((material) => (
                                 <th key={material} className="material-header">
                                     <div className="material-header-content">
                                         <span>{material}</span>
                                         {onRemoveMaterial && (
                                             <button 
                                                 className="remove-material-btn"
-                                                onClick={() => setDeleteModalState({ isOpen: true, material })}
+                                                onClick={() => setDeleteMaterialState({ isOpen: true, material })}
                                                 title="Remove column"
                                             >
                                                 <XIcon size={14} />
@@ -112,22 +208,43 @@ export function SubjectPage({
                                     </div>
                                 </th>
                             ))}
-                            <th className="priority-header">Priority</th>
+                            <th className="priority-header">
+                                {isEditing ? 'Actions' : 'Priority'}
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
-                        {data.chapters.map((chapter) => (
+                        {data.chapters.map((chapter, index) => (
                             <ChapterRow
                                 key={chapter.serial}
                                 chapter={chapter}
+                                index={index}
                                 materialNames={data.materialNames}
                                 progress={progress[chapter.serial]}
                                 onToggleMaterial={onToggleMaterial}
                                 onSetPriority={onSetPriority}
+                                isEditing={isEditing}
+                                onRename={(name) => onRenameChapter?.(chapter.serial, name)}
+                                onDelete={() => setChapterToDelete({ isOpen: true, serial: chapter.serial, name: chapter.name })}
+                                onDragStart={(e) => handleDragStart(e, index)}
+                                onDragEnter={(e) => handleDragEnter(e, index)}
+                                onDragEnd={handleDragEnd}
                             />
                         ))}
                     </tbody>
                 </table>
+                {isEditing && (
+                    <div style={{ padding: '1rem', borderTop: '1px solid var(--border)', textAlign: 'center' }}>
+                        <button
+                            onClick={() => setIsAddChapterModalOpen(true)}
+                            className="primary-btn"
+                            style={{ width: '100%', maxWidth: '300px', margin: '0 auto' }}
+                        >
+                            <Plus size={18} />
+                            Add New Chapter
+                        </button>
+                    </div>
+                )}
             </div>
 
             <div className="legend">
@@ -152,21 +269,40 @@ export function SubjectPage({
                 </div>
             </div>
 
+            {/* Material Modals */}
             <ConfirmationModal 
-                isOpen={deleteModalState.isOpen}
+                isOpen={deleteMaterialState.isOpen}
                 title="Remove Study Material"
-                message={`Are you sure you want to remove the '${deleteModalState.material}' column? This will hide it from your view.`}
-                onConfirm={confirmDelete}
-                onCancel={() => setDeleteModalState({ isOpen: false, material: null })}
+                message={`Are you sure you want to remove the '${deleteMaterialState.material}' column? This will hide it from your view.`}
+                onConfirm={confirmDeleteMaterial}
+                onCancel={() => setDeleteMaterialState({ isOpen: false, material: null })}
             />
 
             <InputModal
-                isOpen={isAddModalOpen}
+                isOpen={isAddMaterialModalOpen}
                 title="Add Study Material"
                 message="Enter the name of the new study material (e.g., 'YouTube', 'Notes'):"
                 placeholder="Material Name"
                 onConfirm={handleAddMaterial}
-                onCancel={() => setIsAddModalOpen(false)}
+                onCancel={() => setIsAddMaterialModalOpen(false)}
+            />
+
+            {/* Chapter Modals */}
+            <ConfirmationModal 
+                isOpen={chapterToDelete.isOpen}
+                title="Delete Chapter"
+                message={`Are you sure you want to delete '${chapterToDelete.name}'? This action cannot be undone and you will lose all progress for this chapter.`}
+                onConfirm={confirmDeleteChapter}
+                onCancel={() => setChapterToDelete({ isOpen: false, serial: null, name: '' })}
+            />
+
+            <InputModal
+                isOpen={isAddChapterModalOpen}
+                title="Add New Chapter"
+                message="Enter the name of the new chapter:"
+                placeholder="Chapter Name"
+                onConfirm={handleAddChapter}
+                onCancel={() => setIsAddChapterModalOpen(false)}
             />
         </div>
     );

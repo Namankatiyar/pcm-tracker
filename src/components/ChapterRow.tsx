@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Chapter, ChapterProgress, Priority } from '../types';
 import { PrioritySelector } from './PrioritySelector';
 import { triggerConfetti } from '../utils/confetti';
+import { Trash2, GripVertical } from 'lucide-react';
 
 interface ChapterRowProps {
     chapter: Chapter;
@@ -9,6 +10,15 @@ interface ChapterRowProps {
     progress: ChapterProgress | undefined;
     onToggleMaterial: (chapterSerial: number, material: string) => void;
     onSetPriority: (chapterSerial: number, priority: Priority) => void;
+    isEditing?: boolean;
+    onRename?: (newName: string) => void;
+    onDelete?: () => void;
+    isFirst?: boolean;
+    isLast?: boolean;
+    index?: number;
+    onDragStart?: (e: React.DragEvent<HTMLTableRowElement>) => void;
+    onDragEnter?: (e: React.DragEvent<HTMLTableRowElement>) => void;
+    onDragEnd?: (e: React.DragEvent<HTMLTableRowElement>) => void;
 }
 
 export function ChapterRow({
@@ -16,7 +26,14 @@ export function ChapterRow({
     materialNames,
     progress,
     onToggleMaterial,
-    onSetPriority
+    onSetPriority,
+    isEditing = false,
+    onRename,
+    onDelete,
+    index,
+    onDragStart,
+    onDragEnter,
+    onDragEnd
 }: ChapterRowProps) {
     const completed = progress?.completed || {};
     const priority = progress?.priority || 'none';
@@ -35,20 +52,49 @@ export function ChapterRow({
     }, [completedCount, isFullyCompleted, materialNames.length]);
 
     const getPriorityClass = () => {
+        if (isEditing) return ''; // No priority styling in edit mode
         if (isFullyCompleted) return 'completed';
         return priority !== 'none' ? `priority-${priority}` : '';
     };
 
     return (
-        <tr className={`chapter-row ${getPriorityClass()}`}>
-            <td className="serial-cell">{chapter.serial}</td>
-            <td className="chapter-cell">
-                <span className={isFullyCompleted ? 'chapter-name completed' : 'chapter-name'}>
-                    {chapter.name}
-                </span>
-                {isFullyCompleted && <span className="completed-badge">✓</span>}
+        <tr 
+            className={`chapter-row ${getPriorityClass()}`}
+            draggable={isEditing}
+            onDragStart={isEditing ? onDragStart : undefined}
+            onDragEnter={isEditing ? onDragEnter : undefined}
+            onDragEnd={isEditing ? onDragEnd : undefined}
+            onDragOver={isEditing ? (e) => e.preventDefault() : undefined}
+            style={isEditing ? { cursor: 'grab' } : undefined}
+        >
+            <td className="serial-cell">
+                {isEditing ? (
+                    <div style={{ display: 'flex', justifyContent: 'center', cursor: 'grab', color: 'var(--text-secondary)' }}>
+                        <GripVertical size={20} />
+                    </div>
+                ) : (
+                    index !== undefined ? index + 1 : chapter.serial
+                )}
             </td>
-            {materialNames.map((material) => (
+            <td className="chapter-cell">
+                {isEditing ? (
+                    <input
+                        type="text"
+                        value={chapter.name}
+                        onChange={(e) => onRename?.(e.target.value)}
+                        className="modal-input"
+                        style={{ padding: '0.4rem', fontSize: '0.85rem' }}
+                    />
+                ) : (
+                    <>
+                        <span className={isFullyCompleted ? 'chapter-name completed' : 'chapter-name'}>
+                            {chapter.name}
+                        </span>
+                        {isFullyCompleted && <span className="completed-badge">✓</span>}
+                    </>
+                )}
+            </td>
+            {!isEditing && materialNames.map((material) => (
                 <td key={material} className="material-cell">
                     <label className="checkbox-container">
                         <input
@@ -61,10 +107,33 @@ export function ChapterRow({
                 </td>
             ))}
             <td className="priority-cell">
-                <PrioritySelector
-                    priority={priority}
-                    onChange={(p) => onSetPriority(chapter.serial, p)}
-                />
+                {isEditing ? (
+                    <button
+                        onClick={onDelete}
+                        style={{
+                            background: 'var(--priority-high-bg)',
+                            color: 'var(--priority-high)',
+                            border: '1px solid var(--priority-high)',
+                            borderRadius: '4px',
+                            padding: '0.3rem 0.6rem',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            margin: '0 auto'
+                        }}
+                    >
+                        <Trash2 size={14} />
+                        Delete
+                    </button>
+                ) : (
+                    <PrioritySelector
+                        priority={priority}
+                        onChange={(p) => onSetPriority(chapter.serial, p)}
+                    />
+                )}
             </td>
         </tr>
     );

@@ -37,7 +37,6 @@ yarn-error.log*
 .env*.local
 Context.md
 
-contextforproj.md
-instructions.md
+
 *.exe
 *.zip

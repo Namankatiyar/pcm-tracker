@@ -174,7 +174,7 @@ export function Dashboard({
                                     <div className="agenda-info">
                                         <span className="agenda-title">
                                             {task.title}
-                                            {isTaskOverdue(task) && <span className="pending-tag">Pending</span>}
+                                            {isTaskOverdue(task) && <> <span className="pending-tag">Pending</span></>}
                                         </span>
                                         <div className="agenda-subtitle">
                                             {task.subject && (

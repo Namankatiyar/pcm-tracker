@@ -786,7 +786,7 @@ body {
 .chapter-table th {
   background: var(--bg-tertiary);
   padding: 0.6rem 0.5rem;
-  text-align: left;
+  text-align: center;
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-secondary);
@@ -844,7 +844,6 @@ body {
   border: 1px solid var(--accent-border);
 }
 
-/* Specificity fix for centering */
 th.material-header, td.material-cell {
   min-width: 90px;
   text-align: center;
@@ -868,6 +867,9 @@ th.material-header, td.material-cell {
   border-radius: 4px;
   transition: all var(--transition-fast);
   opacity: 0.5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .remove-material-btn:hover {
@@ -923,10 +925,12 @@ th.material-header, td.material-cell {
 
 /* ===== Checkbox ===== */
 .checkbox-container {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  margin: 0 auto;
+  vertical-align: middle;
 }
 
 .checkbox-container input {
@@ -1574,6 +1578,10 @@ th.material-header, td.material-cell {
   gap: 0.5rem;
   padding: 2rem 0;
 }
+
+.task-log-card .empty-agenda {
+  height: 120px;
+}
 .empty-hint {
   font-size: 0.8rem;
   color: var(--text-muted);
@@ -1734,6 +1742,5 @@ th.material-header, td.material-cell {
   font-weight: 600;
   padding: 2px 6px;
   border-radius: 4px;
-  margin-left: 6px;
   white-space: nowrap;
 }

@@ -7,7 +7,67 @@ import { Atom, FlaskConical, Calculator, Zap, Calendar, Check } from 'lucide-rea
 import { formatDateLocal, formatTime12Hour } from '../utils/date';
 
 interface DashboardProps {
-// ...
+    physicsProgress: number;
+    chemistryProgress: number;
+    mathsProgress: number;
+    overallProgress: number;
+    subjectData: Record<Subject, SubjectData | null>;
+    onNavigate: (subject: Subject) => void;
+    quote?: { quote: string; author: string } | null;
+    plannerTasks: PlannerTask[];
+    onToggleTask: (taskId: string) => void;
+    examDate: string;
+    onExamDateChange: (date: string) => void;
+    onQuickAdd: () => void;
+}
+
+export function Dashboard({
+    physicsProgress,
+    chemistryProgress,
+    mathsProgress,
+    overallProgress,
+    subjectData,
+    onNavigate,
+    quote,
+    plannerTasks,
+    onToggleTask,
+    examDate,
+    onExamDateChange,
+    onQuickAdd
+}: DashboardProps) {
+    const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+
+    const subjects: { key: Subject; label: string; icon: React.ReactNode; progress: number; color: string }[] = [
+        { key: 'physics', label: 'Physics', icon: <Atom size={24} />, progress: physicsProgress, color: 'var(--accent)' },
+        { key: 'chemistry', label: 'Chemistry', icon: <FlaskConical size={24} />, progress: chemistryProgress, color: 'var(--accent)' },
+        { key: 'maths', label: 'Maths', icon: <Calculator size={24} />, progress: mathsProgress, color: 'var(--accent)' },
+    ];
+
+    const getChapterStats = (subject: Subject) => {
+        const data = subjectData[subject];
+        if (!data) return { total: 0, completed: 0 };
+        return { total: data.chapters.length, completed: 0 };
+    };
+
+    const calculateDaysRemaining = () => {
+        if (!examDate) return null;
+        const target = new Date(examDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        target.setHours(0, 0, 0, 0);
+        
+        const diffTime = target.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays;
+    };
+
+    const daysRemaining = calculateDaysRemaining();
+
+    const getCountdownColor = (days: number) => {
+        const hue = Math.min(Math.max(days * 2, 0), 120);
+        return `hsl(${hue}, 80%, 45%)`;
+    };
+
     const formatDateDisplay = (dateString: string) => {
         if (!dateString) return 'Set Target Date';
         const date = new Date(dateString);

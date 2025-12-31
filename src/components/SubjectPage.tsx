@@ -167,7 +167,7 @@ export function SubjectPage({
                                     className="icon-btn"
                                     style={{
                                         background: isEditing ? 'var(--accent)' : 'var(--bg-tertiary)',
-                                        color: isEditing ? 'var(--accent-text)' : 'var(--text-secondary)',
+                                        color: isEditing ? 'var(--accent-text)' : 'var(--accent)',
                                         border: `1px solid ${isEditing ? 'var(--accent)' : 'var(--border)'}`,
                                         borderRadius: '6px',
                                         padding: '0.2rem 0.5rem',

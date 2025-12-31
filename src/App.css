@@ -2262,6 +2262,25 @@ td.material-cell {
   background: var(--priority-high-bg);
 }
 
+/* Stats and Log Row - Side by Side Layout */
+.stats-and-log-row {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.stats-and-log-row .statistics-card,
+.stats-and-log-row .session-log-card {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .stats-and-log-row {
+    flex-direction: column;
+  }
+}
+
 /* Session Log Card */
 .session-log-card {
   background: var(--bg-secondary);

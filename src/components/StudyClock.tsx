@@ -563,127 +563,130 @@ export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSessio
                     </div>
                 </div>
 
-                {/* Statistics Panel - BEFORE Session Log */}
-                <div className="statistics-card">
-                    <h3>Statistics</h3>
+                {/* Statistics and Session Log - Side by Side */}
+                <div className="stats-and-log-row">
+                    {/* Statistics Panel */}
+                    <div className="statistics-card">
+                        <h3>Statistics</h3>
 
-                    <div className="stats-total" onClick={() => setShowDistribution(true)}>
-                        <div className="stats-total-label">Total Study Time</div>
-                        <div className="stats-total-value">{formatDuration(totalTime)}</div>
-                        <div className="stats-total-hint">Click to see breakdown</div>
-                    </div>
-
-                    <div className="stats-filters">
-                        <div className="stats-filter-group">
-                            <label>Subject</label>
-                            <div className="custom-select">
-                                <select
-                                    value={statsSubject}
-                                    onChange={(e) => {
-                                        setStatsSubject(e.target.value as Subject | 'all');
-                                        setStatsChapter('all');
-                                        setStatsMaterial('all');
-                                    }}
-                                >
-                                    <option value="all">All Subjects</option>
-                                    <option value="physics">Physics</option>
-                                    <option value="chemistry">Chemistry</option>
-                                    <option value="maths">Maths</option>
-                                </select>
-                                <ChevronDown size={16} className="select-icon" />
-                            </div>
+                        <div className="stats-total" onClick={() => setShowDistribution(true)}>
+                            <div className="stats-total-label">Total Study Time</div>
+                            <div className="stats-total-value">{formatDuration(totalTime)}</div>
+                            <div className="stats-total-hint">Click to see breakdown</div>
                         </div>
 
-                        {statsSubject !== 'all' && (
+                        <div className="stats-filters">
                             <div className="stats-filter-group">
-                                <label>Chapter</label>
+                                <label>Subject</label>
                                 <div className="custom-select">
                                     <select
-                                        value={statsChapter}
+                                        value={statsSubject}
                                         onChange={(e) => {
-                                            setStatsChapter(e.target.value === 'all' ? 'all' : parseInt(e.target.value));
+                                            setStatsSubject(e.target.value as Subject | 'all');
+                                            setStatsChapter('all');
                                             setStatsMaterial('all');
                                         }}
                                     >
-                                        <option value="all">All Chapters</option>
-                                        {statsAvailableChapters.map(ch => (
-                                            <option key={ch.serial} value={ch.serial}>{ch.name}</option>
-                                        ))}
+                                        <option value="all">All Subjects</option>
+                                        <option value="physics">Physics</option>
+                                        <option value="chemistry">Chemistry</option>
+                                        <option value="maths">Maths</option>
                                     </select>
                                     <ChevronDown size={16} className="select-icon" />
                                 </div>
                             </div>
-                        )}
 
-                        {statsSubject !== 'all' && (
-                            <div className="stats-filter-group">
-                                <label>Material</label>
-                                <div className="custom-select">
-                                    <select
-                                        value={statsMaterial}
-                                        onChange={(e) => setStatsMaterial(e.target.value)}
-                                    >
-                                        <option value="all">All Materials</option>
-                                        {statsAvailableMaterials.map(mat => (
-                                            <option key={mat} value={mat}>{mat}</option>
-                                        ))}
-                                    </select>
-                                    <ChevronDown size={16} className="select-icon" />
+                            {statsSubject !== 'all' && (
+                                <div className="stats-filter-group">
+                                    <label>Chapter</label>
+                                    <div className="custom-select">
+                                        <select
+                                            value={statsChapter}
+                                            onChange={(e) => {
+                                                setStatsChapter(e.target.value === 'all' ? 'all' : parseInt(e.target.value));
+                                                setStatsMaterial('all');
+                                            }}
+                                        >
+                                            <option value="all">All Chapters</option>
+                                            {statsAvailableChapters.map(ch => (
+                                                <option key={ch.serial} value={ch.serial}>{ch.name}</option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown size={16} className="select-icon" />
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-                    </div>
+                            )}
 
-                    <div className="stats-filtered-result">
-                        <div className="stats-filtered-label">
-                            {statsSubject === 'all' ? 'All Sessions' : (
-                                <>
-                                    {statsSubject.charAt(0).toUpperCase() + statsSubject.slice(1)}
-                                    {statsChapter !== 'all' && ` > ${subjectData[statsSubject]?.chapters.find(c => c.serial === statsChapter)?.name || ''}`}
-                                    {statsMaterial !== 'all' && ` > ${statsMaterial}`}
-                                </>
+                            {statsSubject !== 'all' && (
+                                <div className="stats-filter-group">
+                                    <label>Material</label>
+                                    <div className="custom-select">
+                                        <select
+                                            value={statsMaterial}
+                                            onChange={(e) => setStatsMaterial(e.target.value)}
+                                        >
+                                            <option value="all">All Materials</option>
+                                            {statsAvailableMaterials.map(mat => (
+                                                <option key={mat} value={mat}>{mat}</option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown size={16} className="select-icon" />
+                                    </div>
+                                </div>
                             )}
                         </div>
-                        <div className="stats-filtered-value">{formatDuration(totalFilteredTime)}</div>
-                        <div className="stats-filtered-count">{getFilteredSessions().length} sessions</div>
-                    </div>
-                </div>
 
-                {/* Session Log - AFTER Statistics */}
-                <div className="session-log-card">
-                    <h3>Session Log</h3>
-                    <div className="session-log-list">
-                        {sessions.length === 0 ? (
-                            <div className="empty-log">
-                                <Clock size={32} />
-                                <p>No sessions recorded yet</p>
-                                <span>Start a timer to track your study time</span>
+                        <div className="stats-filtered-result">
+                            <div className="stats-filtered-label">
+                                {statsSubject === 'all' ? 'All Sessions' : (
+                                    <>
+                                        {statsSubject.charAt(0).toUpperCase() + statsSubject.slice(1)}
+                                        {statsChapter !== 'all' && ` > ${subjectData[statsSubject]?.chapters.find(c => c.serial === statsChapter)?.name || ''}`}
+                                        {statsMaterial !== 'all' && ` > ${statsMaterial}`}
+                                    </>
+                                )}
                             </div>
-                        ) : (
-                            sessions.slice().reverse().map(session => (
-                                <div key={session.id} className="session-log-item">
-                                    <div className="session-info">
-                                        <div className="session-title">{session.title}</div>
-                                        <div className="session-meta">
-                                            {new Date(session.endTime).toLocaleDateString('en-US', {
-                                                month: 'short',
-                                                day: 'numeric',
-                                                hour: '2-digit',
-                                                minute: '2-digit'
-                                            })}
-                                        </div>
-                                    </div>
-                                    <div className="session-duration">{formatDuration(session.duration)}</div>
-                                    <button
-                                        className="session-delete-btn"
-                                        onClick={() => onDeleteSession(session.id)}
-                                        title="Delete session"
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
+                            <div className="stats-filtered-value">{formatDuration(totalFilteredTime)}</div>
+                            <div className="stats-filtered-count">{getFilteredSessions().length} sessions</div>
+                        </div>
+                    </div>
+
+                    {/* Session Log */}
+                    <div className="session-log-card">
+                        <h3>Session Log</h3>
+                        <div className="session-log-list">
+                            {sessions.length === 0 ? (
+                                <div className="empty-log">
+                                    <Clock size={32} />
+                                    <p>No sessions recorded yet</p>
+                                    <span>Start a timer to track your study time</span>
                                 </div>
-                            ))
-                        )}
+                            ) : (
+                                sessions.slice().reverse().map(session => (
+                                    <div key={session.id} className="session-log-item">
+                                        <div className="session-info">
+                                            <div className="session-title">{session.title}</div>
+                                            <div className="session-meta">
+                                                {new Date(session.endTime).toLocaleDateString('en-US', {
+                                                    month: 'short',
+                                                    day: 'numeric',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                })}
+                                            </div>
+                                        </div>
+                                        <div className="session-duration">{formatDuration(session.duration)}</div>
+                                        <button
+                                            className="session-delete-btn"
+                                            onClick={() => onDeleteSession(session.id)}
+                                            title="Delete session"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
+                                ))
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

@@ -1869,6 +1869,7 @@ td.material-cell {
 /* ===== Study Clock Page ===== */
 .study-clock-page {
   padding: 2rem;
+  padding-top: 0;
   max-width: 1400px;
   margin: 0 auto;
 }
@@ -2703,6 +2704,7 @@ td.material-cell {
 @media (max-width: 600px) {
   .study-clock-page {
     padding: 1rem;
+    padding-top: 0;
   }
 
   .timer-time {

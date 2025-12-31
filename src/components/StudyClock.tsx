@@ -12,6 +12,20 @@ interface StudyClockProps {
 
 type TimerState = 'idle' | 'running' | 'paused';
 
+// Interface for persisting paused timer state
+interface PausedTimerState {
+    elapsedSeconds: number;
+    taskType: 'chapter' | 'custom' | 'task';
+    selectedSubject: Subject | '';
+    selectedChapter: number | '';
+    selectedMaterial: string;
+    customTitle: string;
+    selectedTaskId: string;
+    pausedAt: string; // ISO timestamp when paused
+}
+
+const PAUSED_TIMER_STORAGE_KEY = 'jee-tracker-paused-timer';
+
 export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSession, plannerTasks }: StudyClockProps) {
     // Timer state
     const [timerState, setTimerState] = useState<TimerState>('idle');
@@ -27,6 +41,28 @@ export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSessio
     const [selectedMaterial, setSelectedMaterial] = useState<string>('');
     const [customTitle, setCustomTitle] = useState('');
     const [selectedTaskId, setSelectedTaskId] = useState<string>('');
+
+    // Restore paused timer state on mount
+    useEffect(() => {
+        try {
+            const savedState = localStorage.getItem(PAUSED_TIMER_STORAGE_KEY);
+            if (savedState) {
+                const state: PausedTimerState = JSON.parse(savedState);
+                setElapsedSeconds(state.elapsedSeconds);
+                setPausedTime(state.elapsedSeconds);
+                setTaskType(state.taskType);
+                setSelectedSubject(state.selectedSubject);
+                setSelectedChapter(state.selectedChapter);
+                setSelectedMaterial(state.selectedMaterial);
+                setCustomTitle(state.customTitle);
+                setSelectedTaskId(state.selectedTaskId);
+                setTimerState('paused');
+            }
+        } catch (error) {
+            console.error('Error restoring paused timer state:', error);
+            localStorage.removeItem(PAUSED_TIMER_STORAGE_KEY);
+        }
+    }, []);
 
     // Stats filter state
     const [statsSubject, setStatsSubject] = useState<Subject | 'all'>('all');
@@ -102,6 +138,8 @@ export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSessio
     };
 
     const handleStart = () => {
+        // Clear any saved paused state when starting fresh
+        localStorage.removeItem(PAUSED_TIMER_STORAGE_KEY);
         setStartTime(new Date());
         setTimerState('running');
     };
@@ -112,9 +150,24 @@ export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSessio
         }
         setPausedTime(elapsedSeconds);
         setTimerState('paused');
+
+        // Save paused state to localStorage for persistence
+        const pausedState: PausedTimerState = {
+            elapsedSeconds,
+            taskType,
+            selectedSubject,
+            selectedChapter,
+            selectedMaterial,
+            customTitle,
+            selectedTaskId,
+            pausedAt: new Date().toISOString()
+        };
+        localStorage.setItem(PAUSED_TIMER_STORAGE_KEY, JSON.stringify(pausedState));
     };
 
     const handleResume = () => {
+        // Clear saved state when resuming
+        localStorage.removeItem(PAUSED_TIMER_STORAGE_KEY);
         setStartTime(new Date());
         setTimerState('running');
     };
@@ -140,12 +193,37 @@ export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSessio
             onAddSession(session);
         }
 
+        // Clear saved paused state
+        localStorage.removeItem(PAUSED_TIMER_STORAGE_KEY);
+
         // Reset timer
         setTimerState('idle');
         setElapsedSeconds(0);
         setPausedTime(0);
         setStartTime(null);
         setIsFullscreen(false);
+    };
+
+    const handleDiscard = () => {
+        if (timerRef.current) {
+            clearInterval(timerRef.current);
+        }
+
+        // Clear saved paused state without saving session
+        localStorage.removeItem(PAUSED_TIMER_STORAGE_KEY);
+
+        // Reset timer
+        setTimerState('idle');
+        setElapsedSeconds(0);
+        setPausedTime(0);
+        setStartTime(null);
+        setIsFullscreen(false);
+        setTaskType('chapter');
+        setSelectedSubject('');
+        setSelectedChapter('');
+        setSelectedMaterial('');
+        setCustomTitle('');
+        setSelectedTaskId('');
     };
 
     const handleFullscreenClick = () => {
@@ -455,26 +533,29 @@ export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSessio
                         <div className="timer-controls">
                             {timerState === 'idle' && (
                                 <button className="timer-btn start" onClick={handleStart} title="Start (Space)">
-                                    <Play size={24} />
+                                    <Play size={18} />
                                 </button>
                             )}
                             {timerState === 'running' && (
                                 <>
                                     <button className="timer-btn pause" onClick={handlePause} title="Pause (Space)">
-                                        <Pause size={24} />
+                                        <Pause size={18} />
                                     </button>
                                     <button className="timer-btn end" onClick={handleEnd} title="End Session">
-                                        <Square size={24} />
+                                        <Square size={18} />
                                     </button>
                                 </>
                             )}
                             {timerState === 'paused' && (
                                 <>
                                     <button className="timer-btn resume" onClick={handleResume} title="Resume (Space)">
-                                        <Play size={24} />
+                                        <Play size={18} />
                                     </button>
-                                    <button className="timer-btn end" onClick={handleEnd} title="End Session">
-                                        <Square size={24} />
+                                    <button className="timer-btn end" onClick={handleEnd} title="Save & End Session">
+                                        <Square size={18} />
+                                    </button>
+                                    <button className="timer-btn discard" onClick={handleDiscard} title="Discard Session">
+                                        <Trash2 size={18} />
                                     </button>
                                 </>
                             )}

@@ -2203,12 +2203,17 @@ td.material-cell {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
-  border-radius: var(--border-radius-sm);
-  font-weight: 600;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-fast);
   border: 1px solid transparent;
+  opacity: 0.85;
+}
+
+.timer-btn:hover {
+  opacity: 1;
 }
 
 .timer-btn.start,
@@ -2216,34 +2221,45 @@ td.material-cell {
   background: var(--accent);
   color: var(--accent-text);
   border-color: var(--accent-border);
+  opacity: 1;
 }
 
 .timer-btn.start:hover,
 .timer-btn.resume:hover {
   background: var(--accent-hover);
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 .timer-btn.pause {
-  background: var(--priority-medium-bg);
+  background: transparent;
   color: var(--priority-medium);
   border-color: var(--priority-medium);
 }
 
 .timer-btn.pause:hover {
-  background: var(--priority-medium);
-  color: white;
+  background: var(--priority-medium-bg);
 }
 
 .timer-btn.end {
-  background: var(--priority-high-bg);
+  background: transparent;
   color: var(--priority-high);
   border-color: var(--priority-high);
 }
 
 .timer-btn.end:hover {
-  background: var(--priority-high);
-  color: white;
+  background: var(--priority-high-bg);
+}
+
+.timer-btn.discard {
+  background: transparent;
+  color: var(--text-muted);
+  border-color: var(--border);
+}
+
+.timer-btn.discard:hover {
+  color: var(--priority-high);
+  border-color: var(--priority-high);
+  background: var(--priority-high-bg);
 }
 
 /* Session Log Card */

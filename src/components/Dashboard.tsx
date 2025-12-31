@@ -78,9 +78,27 @@ export function Dashboard({
     const todaysTasks = plannerTasks
         .filter(t => t.date === todayStr)
         .sort((a, b) => {
-            if (a.completed !== b.completed) {
-                return a.completed ? 1 : -1;
-            }
+            // Priority: 1. New tasks (not completed, not shifted), 2. Shifted/delayed, 3. Completed
+            const aIsCompleted = a.completed;
+            const bIsCompleted = b.completed;
+            const aIsShifted = a.wasShifted && !a.completed;
+            const bIsShifted = b.wasShifted && !b.completed;
+            const aIsNew = !a.completed && !a.wasShifted;
+            const bIsNew = !b.completed && !b.wasShifted;
+
+            // New tasks come first
+            if (aIsNew && !bIsNew) return -1;
+            if (!aIsNew && bIsNew) return 1;
+
+            // Then shifted/delayed tasks
+            if (aIsShifted && !bIsShifted && !bIsNew) return -1;
+            if (!aIsShifted && !aIsNew && bIsShifted) return 1;
+
+            // Completed tasks come last
+            if (aIsCompleted && !bIsCompleted) return 1;
+            if (!aIsCompleted && bIsCompleted) return -1;
+
+            // Within same category, sort by time
             return a.time.localeCompare(b.time);
         });
 
@@ -91,6 +109,17 @@ export function Dashboard({
         const taskTime = new Date();
         taskTime.setHours(hours, minutes, 0, 0);
         return now > taskTime;
+    };
+
+    const getTaskTimeDisplay = (task: PlannerTask) => {
+        if (task.completed && task.completedAt) {
+            const completedDate = new Date(task.completedAt);
+            return `Done ${formatTime12Hour(completedDate.getHours().toString().padStart(2, '0') + ':' + completedDate.getMinutes().toString().padStart(2, '0'))}`;
+        }
+        if (task.wasShifted && !task.completed) {
+            return 'Delayed';
+        }
+        return formatTime12Hour(task.time);
     };
 
     return (
@@ -174,7 +203,7 @@ export function Dashboard({
                                     <div className="agenda-info">
                                         <span className="agenda-title">
                                             {task.title}
-                                            {isTaskOverdue(task) && <> <span className="pending-tag">Pending</span></>}
+                                            {(isTaskOverdue(task) || task.wasShifted) && !task.completed && <> <span className="pending-tag">Pending</span></>}
                                         </span>
                                         <div className="agenda-subtitle">
                                             {task.subject && (
@@ -189,8 +218,8 @@ export function Dashboard({
                                             {task.subtitle && task.subtitle}
                                         </div>
                                     </div>
-                                    <div className="agenda-time">
-                                        {formatTime12Hour(task.time)}
+                                    <div className={`agenda-time ${task.wasShifted && !task.completed ? 'delayed' : ''} ${task.completed ? 'completed-time' : ''}`}>
+                                        {getTaskTimeDisplay(task)}
                                     </div>
                                 </div>
                             ))

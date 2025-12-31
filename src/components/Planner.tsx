@@ -62,7 +62,30 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
     };
 
     const getTasksForDate = (dateStr: string) => {
-        return tasks.filter(t => t.date === dateStr).sort((a, b) => a.time.localeCompare(b.time));
+        return tasks.filter(t => t.date === dateStr).sort((a, b) => {
+            // Priority: 1. New tasks (not completed, not shifted), 2. Shifted/delayed, 3. Completed
+            const aIsCompleted = a.completed;
+            const bIsCompleted = b.completed;
+            const aIsShifted = a.wasShifted && !a.completed;
+            const bIsShifted = b.wasShifted && !b.completed;
+            const aIsNew = !a.completed && !a.wasShifted;
+            const bIsNew = !b.completed && !b.wasShifted;
+
+            // New tasks come first
+            if (aIsNew && !bIsNew) return -1;
+            if (!aIsNew && bIsNew) return 1;
+
+            // Then shifted/delayed tasks
+            if (aIsShifted && !bIsShifted && !bIsNew) return -1;
+            if (!aIsShifted && !aIsNew && bIsShifted) return 1;
+
+            // Completed tasks come last
+            if (aIsCompleted && !bIsCompleted) return 1;
+            if (!aIsCompleted && bIsCompleted) return -1;
+
+            // Within same category, sort by time
+            return a.time.localeCompare(b.time);
+        });
     };
 
     const handleAddTaskClick = (dateStr: string) => {
@@ -483,6 +506,17 @@ function DayColumn({ date, tasks, onAddTask, onEditTask, onToggleTask, onDeleteT
         return now > taskDateTime;
     };
 
+    const getTaskTimeDisplay = (task: PlannerTask) => {
+        if (task.completed && task.completedAt) {
+            const completedDate = new Date(task.completedAt);
+            return `Done ${formatTime12Hour(completedDate.getHours().toString().padStart(2, '0') + ':' + completedDate.getMinutes().toString().padStart(2, '0'))}`;
+        }
+        if (task.wasShifted && !task.completed) {
+            return 'Delayed';
+        }
+        return formatTime12Hour(task.time);
+    };
+
     const handleDragStart = (e: React.DragEvent, taskId: string) => {
         e.dataTransfer.setData('text/plain', taskId);
         e.dataTransfer.effectAllowed = 'move';
@@ -561,9 +595,9 @@ function DayColumn({ date, tasks, onAddTask, onEditTask, onToggleTask, onDeleteT
                                 </div>
 
                                 <div className="task-right">
-                                    <div className="task-meta">
+                                    <div className={`task-meta ${task.wasShifted && !task.completed ? 'delayed' : ''} ${task.completed ? 'completed-time' : ''}`}>
                                         <Clock size={12} />
-                                        <span>{formatTime12Hour(task.time)}</span>
+                                        <span>{getTaskTimeDisplay(task)}</span>
                                     </div>
                                     <div className="task-actions">
                                         <button

@@ -42,3 +42,16 @@ export interface PlannerTask {
     completedAt?: string;
     wasShifted?: boolean; // True if this task was auto-moved from a past day
 }
+
+export interface StudySession {
+    id: string;
+    title: string;
+    subject?: Subject;
+    chapterSerial?: number;
+    chapterName?: string;
+    material?: string;
+    type: 'chapter' | 'custom' | 'task';
+    startTime: string;      // ISO timestamp
+    endTime: string;        // ISO timestamp
+    duration: number;       // in seconds
+}

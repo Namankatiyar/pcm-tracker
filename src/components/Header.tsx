@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { Subject } from '../types';
-import { LayoutDashboard, Atom, FlaskConical, Calculator, Sun, Moon, Palette, Settings, Calendar } from 'lucide-react';
+import { LayoutDashboard, Atom, FlaskConical, Calculator, Sun, Moon, Palette, Settings, Calendar, Clock } from 'lucide-react';
 import { SettingsModal } from './SettingsModal';
 import { ColorPickerModal } from './ColorPickerModal';
 
 interface HeaderProps {
-    currentView: 'dashboard' | 'planner' | Subject;
-    onNavigate: (view: 'dashboard' | 'planner' | Subject) => void;
+    currentView: 'dashboard' | 'planner' | 'studyclock' | Subject;
+    onNavigate: (view: 'dashboard' | 'planner' | 'studyclock' | Subject) => void;
     theme: 'light' | 'dark';
     onThemeToggle: () => void;
     accentColor: string;
@@ -49,12 +49,13 @@ export function Header({ currentView, onNavigate, theme, onThemeToggle, accentCo
         };
     }, [isColorPickerOpen]);
 
-    const navItems: { key: 'dashboard' | 'planner' | Subject; label: string; icon: React.ReactNode }[] = [
+    const navItems: { key: 'dashboard' | 'planner' | 'studyclock' | Subject; label: string; icon: React.ReactNode }[] = [
         { key: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
         { key: 'physics', label: 'Physics', icon: <Atom size={20} /> },
         { key: 'chemistry', label: 'Chemistry', icon: <FlaskConical size={20} /> },
         { key: 'maths', label: 'Maths', icon: <Calculator size={20} /> },
         { key: 'planner', label: 'Planner', icon: <Calendar size={20} /> },
+        { key: 'studyclock', label: 'Study Clock', icon: <Clock size={20} /> },
     ];
 
     const isCustomColor = !ACCENT_COLORS.some(c => c.value === accentColor);

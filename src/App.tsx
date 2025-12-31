@@ -3,15 +3,16 @@ import { Header } from './components/Header';
 import { Dashboard } from './components/Dashboard';
 import { SubjectPage } from './components/SubjectPage';
 import { Planner } from './components/Planner';
+import { StudyClock } from './components/StudyClock';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useProgress } from './hooks/useProgress';
 import { parseSubjectCSV } from './utils/csvParser';
 import { formatDateLocal } from './utils/date';
 import { triggerSmallConfetti } from './utils/confetti';
-import { AppProgress, Subject, SubjectData, Priority, PlannerTask } from './types';
+import { AppProgress, Subject, SubjectData, Priority, PlannerTask, StudySession } from './types';
 import quotes from './quotes.json';
 
-type View = 'dashboard' | 'planner' | Subject;
+type View = 'dashboard' | 'planner' | 'studyclock' | Subject;
 
 const initialProgress: AppProgress = {
     physics: {},
@@ -36,6 +37,7 @@ function App() {
         chemistry: [],
         maths: []
     });
+    const [studySessions, setStudySessions] = useLocalStorage<StudySession[]>('jee-tracker-study-sessions', []);
 
     const [plannerDateToOpen, setPlannerDateToOpen] = useState<string | null>(null);
 
@@ -383,6 +385,15 @@ function App() {
         setPlannerTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t));
     };
 
+    // Study Session Handlers
+    const handleAddStudySession = (session: StudySession) => {
+        setStudySessions(prev => [...prev, session]);
+    };
+
+    const handleDeleteStudySession = (sessionId: string) => {
+        setStudySessions(prev => prev.filter(s => s.id !== sessionId));
+    };
+
     const renderContent = () => {
         if (currentView === 'dashboard') {
             return (
@@ -415,6 +426,18 @@ function App() {
                     examDate={examDate}
                     initialOpenDate={plannerDateToOpen}
                     onConsumeInitialDate={() => setPlannerDateToOpen(null)}
+                />
+            );
+        }
+
+        if (currentView === 'studyclock') {
+            return (
+                <StudyClock
+                    subjectData={mergedSubjectData}
+                    sessions={studySessions}
+                    onAddSession={handleAddStudySession}
+                    onDeleteSession={handleDeleteStudySession}
+                    plannerTasks={plannerTasks}
                 />
             );
         }

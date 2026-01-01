@@ -16,7 +16,7 @@ type TaskType = 'chapter' | 'custom' | null;
 export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, taskToEdit }: TaskModalProps) {
     const [step, setStep] = useState<1 | 2>(1);
     const [taskType, setTaskType] = useState<TaskType>(null);
-    
+
     // Form States
     const [customTitle, setCustomTitle] = useState('');
     const [customSubject, setCustomSubject] = useState<Subject | 'none'>('none');
@@ -26,7 +26,7 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
     const [time, setTime] = useState('');
     const [date, setDate] = useState(initialDate);
     const [chapterSearch, setChapterSearch] = useState('');
-    
+
     // Time Picker States
     const [isTimePickerOpen, setIsTimePickerOpen] = useState(false);
     const [selectedHour, setSelectedHour] = useState('12');
@@ -41,20 +41,20 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                 setTaskType(taskToEdit.type);
                 setStep(2);
                 setTime(taskToEdit.time);
-                
+
                 // Parse time for picker
                 const [h, m] = taskToEdit.time.split(':');
                 let hour = parseInt(h);
                 const period = hour >= 12 ? 'PM' : 'AM';
                 if (hour > 12) hour -= 12;
                 if (hour === 0) hour = 12;
-                
+
                 setSelectedHour(hour.toString().padStart(2, '0'));
                 setSelectedMinute(m);
                 setSelectedPeriod(period);
 
                 setDate(taskToEdit.date);
-                
+
                 if (taskToEdit.type === 'custom') {
                     setCustomTitle(taskToEdit.title);
                     setCustomSubject(taskToEdit.subject || 'none');
@@ -73,12 +73,12 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                 setSelectedMaterial('');
                 setTime('');
                 setDate(initialDate);
-                
+
                 // Default time states
                 const now = new Date();
                 let h = now.getHours();
                 let m = Math.ceil(now.getMinutes() / 5) * 5; // Round to nearest 5
-                
+
                 if (m === 60) {
                     m = 0;
                     h += 1;
@@ -88,7 +88,7 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                 const p = h >= 12 ? 'PM' : 'AM';
                 if (h > 12) h -= 12;
                 if (h === 0) h = 12;
-                
+
                 setSelectedHour(h.toString().padStart(2, '0'));
                 setSelectedMinute(m.toString().padStart(2, '0'));
                 setSelectedPeriod(p);
@@ -131,10 +131,10 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
             });
         } else {
             if (!selectedSubject || selectedChapterSerial === '' || !selectedMaterial) return;
-            
+
             const subjectInfo = subjectData[selectedSubject as Subject];
             const chapter = subjectInfo?.chapters.find(c => c.serial === selectedChapterSerial);
-            
+
             if (!chapter) return;
 
             onSave({
@@ -219,9 +219,9 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                                                 <div className="chapter-picker">
                                                     <div className="chapter-search">
                                                         <Search size={16} className="search-icon" />
-                                                        <input 
-                                                            type="text" 
-                                                            placeholder="Search chapters..." 
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Search chapters..."
                                                             value={chapterSearch}
                                                             onChange={e => setChapterSearch(e.target.value)}
                                                             autoFocus
@@ -229,8 +229,8 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                                                     </div>
                                                     <div className="chapter-list">
                                                         {filteredChapters.map((c) => (
-                                                            <button 
-                                                                key={c.serial} 
+                                                            <button
+                                                                key={c.serial}
                                                                 className="chapter-item"
                                                                 onClick={() => setSelectedChapterSerial(c.serial)}
                                                             >
@@ -281,9 +281,9 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                                 <>
                                     <div className="form-group">
                                         <label>Task Name</label>
-                                        <input 
-                                            type="text" 
-                                            value={customTitle} 
+                                        <input
+                                            type="text"
+                                            value={customTitle}
                                             onChange={e => setCustomTitle(e.target.value)}
                                             placeholder="Enter task details..."
                                             autoFocus
@@ -298,7 +298,7 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                                                     key={subj}
                                                     className={`material-pill ${customSubject === subj ? 'selected' : ''}`}
                                                     onClick={() => setCustomSubject(subj)}
-                                                    style={{ 
+                                                    style={{
                                                         borderColor: customSubject === subj ? `var(--${subj})` : 'var(--border)',
                                                         backgroundColor: customSubject === subj ? `var(--${subj})` : 'var(--bg-tertiary)',
                                                         color: customSubject === subj ? '#fff' : 'var(--text-secondary)'
@@ -320,7 +320,7 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
 
                             <div className="form-group">
                                 <label>Till when? (Deadline)</label>
-                                <div 
+                                <div
                                     className={`time-display-box ${isTimePickerOpen ? 'active' : ''}`}
                                     onClick={() => setIsTimePickerOpen(!isTimePickerOpen)}
                                 >
@@ -329,15 +329,15 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                                     </span>
                                     <Clock size={20} className="time-icon" />
                                 </div>
-                                
+
                                 {isTimePickerOpen && (
                                     <div className="custom-time-picker">
                                         <div className="time-column">
                                             <span className="col-label">Hour</span>
                                             <div className="scroll-container">
                                                 {hours.map(h => (
-                                                    <button 
-                                                        key={h} 
+                                                    <button
+                                                        key={h}
                                                         className={`time-btn ${selectedHour === h ? 'selected' : ''}`}
                                                         onClick={() => setSelectedHour(h)}
                                                     >
@@ -350,8 +350,8 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                                             <span className="col-label">Min</span>
                                             <div className="scroll-container">
                                                 {minutes.map(m => (
-                                                    <button 
-                                                        key={m} 
+                                                    <button
+                                                        key={m}
                                                         className={`time-btn ${selectedMinute === m ? 'selected' : ''}`}
                                                         onClick={() => setSelectedMinute(m)}
                                                     >
@@ -361,13 +361,13 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                                             </div>
                                         </div>
                                         <div className="time-column period-col">
-                                            <button 
+                                            <button
                                                 className={`period-btn ${selectedPeriod === 'AM' ? 'selected' : ''}`}
                                                 onClick={() => setSelectedPeriod('AM')}
                                             >
                                                 AM
                                             </button>
-                                            <button 
+                                            <button
                                                 className={`period-btn ${selectedPeriod === 'PM' ? 'selected' : ''}`}
                                                 onClick={() => setSelectedPeriod('PM')}
                                             >
@@ -385,11 +385,11 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                     {step === 2 && (
                         <>
                             <button className="secondary-btn" onClick={() => setStep(1)}>Back</button>
-                            <button 
-                                className="primary-btn" 
+                            <button
+                                className="primary-btn"
                                 onClick={handleSave}
                                 disabled={
-                                    (taskType === 'custom' && !customTitle) || 
+                                    (taskType === 'custom' && !customTitle) ||
                                     (taskType === 'chapter' && (!selectedSubject || !selectedChapterSerial || !selectedMaterial))
                                 }
                             >
@@ -399,13 +399,24 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                     )}
                 </div>
             </div>
-            
+
             <style>{`
                 /* Layout Fixes */
+                .modal-overlay {
+                    backdrop-filter: blur(2px) !important;
+                    background: rgba(0, 0, 0, 0.3) !important;
+                }
                 .modal-content.input-modal {
                     display: flex;
                     flex-direction: column;
                     max-height: 85vh; /* Prevent overflowing screen */
+                    border-radius: 24px;
+                    background: var(--glass-bg);
+                    backdrop-filter: blur(var(--glass-blur));
+                    -webkit-backdrop-filter: blur(var(--glass-blur));
+                    border: 1px solid var(--glass-border);
+                    box-shadow: var(--glass-inner-glow), var(--glass-shadow);
+                    overflow: hidden;
                 }
                 .modal-body-scrollable {
                     flex: 1;
@@ -424,10 +435,14 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                 }
                 .modal-footer {
                     padding: 1rem 1.5rem;
-                    border-top: 1px solid var(--border);
-                    background: var(--bg-secondary);
-                    border-radius: 0 0 12px 12px;
+                    border-top: 1px solid var(--glass-border);
+                    background: rgba(27, 27, 27, 0.08);
+                    backdrop-filter: blur(10px);
+                    border-radius: 0 0 24px 24px;
                     flex-shrink: 0;
+                    display: flex;
+                    justify-content: flex-end;
+                    gap: 1rem;
                 }
 
                 .task-type-selection {
@@ -443,14 +458,15 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                     justify-content: center;
                     gap: 1rem;
                     padding: 3rem 2rem;
-                    border: 2px solid var(--border);
-                    border-radius: 16px;
-                    background: var(--bg-secondary);
+                    border: 1px solid rgba(255, 255, 255, 0.15);
+                    border-radius: 20px;
+                    background: rgba(44, 44, 44, 0.12);
                     color: var(--text-primary);
                     cursor: pointer;
                     transition: all 0.2s;
                     font-size: 1.1rem;
                     font-weight: 600;
+                    backdrop-filter: blur(5px);
                 }
                 .type-btn:hover {
                     border-color: var(--accent);
@@ -477,9 +493,10 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                 .subject-option {
                     flex: 1;
                     padding: 1rem 0.75rem; /* Larger padding */
-                    border: 2px solid var(--border);
-                    background: var(--bg-tertiary);
-                    border-radius: 10px;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    background: rgba(255, 255, 255, 0.05);
+                    backdrop-filter: blur(8px);
+                    border-radius: 12px;
                     cursor: pointer;
                     font-weight: 700; /* Bolder font */
                     font-size: 1.1rem; /* Larger font */
@@ -491,16 +508,19 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                     color: var(--subj-color);
                 }
                 .subject-option.selected {
-                    background: color-mix(in srgb, var(--subj-color), transparent 90%);
+                    background: color-mix(in srgb, var(--subj-color), transparent 85%);
+                    backdrop-filter: blur(12px);
                     border-color: var(--subj-color);
                     color: var(--subj-color);
+                    box-shadow: 0 0 15px color-mix(in srgb, var(--subj-color), transparent 80%);
                 }
 
                 .chapter-picker {
-                    border: 1px solid var(--border);
-                    border-radius: 8px;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 12px;
                     overflow: hidden;
-                    background: var(--bg-tertiary);
+                    background: rgba(255, 255, 255, 0.03);
+                    backdrop-filter: blur(8px);
                     display: flex;
                     flex-direction: column;
                     max-height: 250px;
@@ -509,8 +529,8 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                     display: flex;
                     align-items: center;
                     padding: 0.75rem;
-                    border-bottom: 1px solid var(--border);
-                    background: var(--bg-secondary);
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                    background: rgba(255, 255, 255, 0.05);
                 }
                 .search-icon {
                     color: var(--text-muted);
@@ -586,11 +606,12 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                     width: 100%;
                     padding: 1rem;
                     font-size: 1.1rem;
-                    border: 1px solid var(--border);
-                    border-radius: 8px;
-                    background: var(--bg-tertiary);
+                    border: 1px solid rgba(255, 255, 255, 0.15);
+                    border-radius: 12px;
+                    background: rgba(255, 255, 255, 0.05);
+                    backdrop-filter: blur(10px);
                     color: var(--text-primary);
-                    transition: border-color 0.2s;
+                    transition: all 0.2s;
                 }
                 .large-input:focus {
                     outline: none;
@@ -610,8 +631,9 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                 }
                 .material-pill {
                     padding: 0.5rem 1rem;
-                    background: var(--bg-tertiary);
-                    border: 1px solid var(--border);
+                    background: rgba(255, 255, 255, 0.05);
+                    backdrop-filter: blur(8px);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
                     border-radius: 20px;
                     cursor: pointer;
                     font-size: 0.9rem;
@@ -623,9 +645,11 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                     border-color: var(--accent);
                 }
                 .material-pill.selected {
-                    background: var(--accent);
-                    color: var(--accent-text);
-                    border-color: var(--accent-border);
+                    background: color-mix(in srgb, var(--accent), transparent 80%);
+                    backdrop-filter: blur(12px);
+                    color: var(--accent);
+                    border-color: var(--accent);
+                    box-shadow: 0 0 10px color-mix(in srgb, var(--accent), transparent 80%);
                 }
                 .no-materials {
                     color: var(--text-muted);
@@ -639,9 +663,10 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                     align-items: center;
                     justify-content: space-between;
                     padding: 1rem;
-                    background: var(--bg-tertiary);
-                    border: 1px solid var(--border);
-                    border-radius: 8px;
+                    background: rgba(255, 255, 255, 0.05);
+                    backdrop-filter: blur(8px);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 12px;
                     cursor: pointer;
                     transition: all 0.2s;
                 }
@@ -669,9 +694,10 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                     gap: 1rem;
                     margin-top: 1rem;
                     padding: 1rem;
-                    background: var(--bg-tertiary);
-                    border-radius: 8px;
-                    border: 1px solid var(--border);
+                    background: rgba(255, 255, 255, 0.03);
+                    backdrop-filter: blur(12px);
+                    border-radius: 16px;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
                     animation: slideDown 0.2s ease;
                 }
                 @keyframes slideDown {
@@ -721,14 +747,15 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                     transition: all 0.1s;
                 }
                 .time-btn:hover {
-                    background: var(--bg-primary);
+                    background: rgba(255, 255, 255, 0.1);
                     color: var(--text-primary);
                 }
                 .time-btn.selected {
-                    background: var(--accent);
-                    color: var(--accent-text);
+                    background: color-mix(in srgb, var(--accent), transparent 80%);
+                    backdrop-filter: blur(8px);
+                    color: var(--accent);
                     font-weight: 700;
-                    border-color: var(--accent-border);
+                    border-color: var(--accent);
                 }
 
                 .period-col {
@@ -738,8 +765,9 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                 .period-btn {
                     padding: 0.75rem 1rem;
                     width: 100%;
-                    background: var(--bg-secondary);
-                    border: 1px solid var(--border);
+                    background: rgba(255, 255, 255, 0.05);
+                    backdrop-filter: blur(8px);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
                     border-radius: 8px;
                     cursor: pointer;
                     font-weight: 600;
@@ -747,9 +775,10 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                     transition: all 0.2s;
                 }
                 .period-btn.selected {
-                    background: var(--accent);
-                    color: var(--accent-text);
-                    border-color: var(--accent-border);
+                    background: color-mix(in srgb, var(--accent), transparent 80%);
+                    backdrop-filter: blur(8px);
+                    color: var(--accent);
+                    border-color: var(--accent);
                 }
             `}</style>
         </div>

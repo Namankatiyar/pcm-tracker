@@ -116,9 +116,6 @@ export function Dashboard({
             const completedDate = new Date(task.completedAt);
             return `Done ${formatTime12Hour(completedDate.getHours().toString().padStart(2, '0') + ':' + completedDate.getMinutes().toString().padStart(2, '0'))}`;
         }
-        if (task.wasShifted && !task.completed) {
-            return 'Delayed';
-        }
         return formatTime12Hour(task.time);
     };
 

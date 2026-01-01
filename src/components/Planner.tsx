@@ -794,10 +794,13 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
                     pointer-events: none;
                 }
 
-                .month-day-cell.past-day .month-day-number,
-                .month-day-cell.past-day .cell-center {
+                .month-day-cell.past-day .month-day-number {
                     z-index: 2;
                     position: relative;
+                }
+
+                .month-day-cell.past-day .cell-center {
+                    z-index: 2;
                 }
 
                 .month-day-cell.past-day .cell-content {
@@ -852,8 +855,8 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
                 .study-hours {
                     font-size: 1.4rem;
                     font-weight: 700;
-                    color: var(--accent);
-                    text-shadow: 0 1px 3px rgba(0,0,0,0.15);
+                    color: #ffffff;
+                    text-shadow: 0 0 12px rgba(255, 255, 255, 0.6), 0 2px 4px rgba(0,0,0,0.3);
                     letter-spacing: -0.5px;
                 }
 
@@ -932,9 +935,6 @@ function DayColumn({ date, tasks, onAddTask, onEditTask, onToggleTask, onDeleteT
         if (task.completed && task.completedAt) {
             const completedDate = new Date(task.completedAt);
             return `Done ${formatTime12Hour(completedDate.getHours().toString().padStart(2, '0') + ':' + completedDate.getMinutes().toString().padStart(2, '0'))}`;
-        }
-        if (task.wasShifted && !task.completed) {
-            return 'Delayed';
         }
         return formatTime12Hour(task.time);
     };

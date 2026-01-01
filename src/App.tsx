@@ -426,6 +426,7 @@ function App() {
                     examDate={examDate}
                     initialOpenDate={plannerDateToOpen}
                     onConsumeInitialDate={() => setPlannerDateToOpen(null)}
+                    sessions={studySessions}
                 />
             );
         }

@@ -54,13 +54,13 @@
   --bg-base: #0a0a0f;
   --bg-primary: color-mix(in srgb, var(--accent), var(--bg-base) 95%);
   /* Slightly stronger tint in dark mode */
-  --bg-secondary: #12121a;
-  --bg-tertiary: #1a1a28;
+  --bg-secondary: rgba(18, 18, 26, 0.6);
+  --bg-tertiary: rgba(26, 26, 40, 0.5);
   --text-primary: #f1f5f9;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
-  --border: #2a2a3c;
-  --border-hover: #3a3a52;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(255, 255, 255, 0.15);
 
   --accent-light: rgba(99, 102, 241, 0.15);
   --priority-high-bg: rgba(239, 68, 68, 0.12);
@@ -68,10 +68,118 @@
   --priority-low-bg: rgba(34, 197, 94, 0.12);
   --completed-bg: rgba(99, 102, 241, 0.12);
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
-  --shadow-glow: 0 0 40px color-mix(in srgb, var(--accent), transparent 80%);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 40px color-mix(in srgb, var(--accent), transparent 75%);
+
+  /* Glassmorphism Variables */
+  --glass-bg: rgba(18, 18, 26, 0.35);
+  --glass-bg-hover: rgba(26, 26, 40, 0.45);
+  --glass-blur: 20px;
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-border-light: rgba(255, 255, 255, 0.15);
+  --glass-inner-glow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+
+  /* Gradient Background - will be set per accent */
+  --gradient-start: color-mix(in srgb, var(--accent), #0a0a0f 85%);
+  --gradient-end: #0a0a0f;
+}
+
+/* ===== Dark Mode Glassmorphism Effects ===== */
+/* Apply glass effect to all major cards and panels */
+[data-theme="dark"] .overall-progress-card,
+[data-theme="dark"] .exam-countdown-card,
+[data-theme="dark"] .agenda-card,
+[data-theme="dark"] .task-log-card,
+[data-theme="dark"] .subject-card,
+[data-theme="dark"] .chapter-card,
+[data-theme="dark"] .study-clock-container,
+[data-theme="dark"] .timer-card,
+[data-theme="dark"] .stats-panel,
+[data-theme="dark"] .session-log-panel,
+[data-theme="dark"] .day-column,
+[data-theme="dark"] .monthly-calendar,
+[data-theme="dark"] .settings-panel,
+[data-theme="dark"] .modal-content,
+[data-theme="dark"] .view-toggles {
+  background: var(--glass-bg) !important;
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: var(--glass-inner-glow), var(--glass-shadow) !important;
+}
+
+/* Glass effect for nav items and buttons in dark mode */
+[data-theme="dark"] .nav-item:hover,
+[data-theme="dark"] .nav-item.active {
+  background: var(--glass-bg-hover);
+  backdrop-filter: blur(12px);
+}
+
+/* Glass effect for modals */
+[data-theme="dark"] .modal-overlay {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+}
+
+/* Glass input fields */
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  background: rgba(0, 0, 0, 0.3) !important;
+  border-color: var(--glass-border) !important;
+  backdrop-filter: blur(8px);
+}
+
+[data-theme="dark"] input:focus,
+[data-theme="dark"] textarea:focus,
+[data-theme="dark"] select:focus {
+  border-color: var(--glass-border-light) !important;
+  box-shadow: var(--glass-inner-glow), 0 0 0 3px color-mix(in srgb, var(--accent), transparent 85%);
+}
+
+/* Glass buttons */
+[data-theme="dark"] .btn-primary,
+[data-theme="dark"] .primary-action-btn {
+  background: color-mix(in srgb, var(--accent), transparent 20%);
+  backdrop-filter: blur(12px);
+  border: 1px solid color-mix(in srgb, var(--accent), white 20%);
+  box-shadow: var(--glass-inner-glow);
+}
+
+[data-theme="dark"] .btn-secondary,
+[data-theme="dark"] .secondary-btn {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+}
+
+/* Glass effect for tooltips and dropdowns */
+[data-theme="dark"] .dropdown,
+[data-theme="dark"] .color-picker-popup,
+[data-theme="dark"] .custom-color-modal-content {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-inner-glow), var(--glass-shadow);
+}
+
+/* Progress bars glass effect */
+[data-theme="dark"] .progress-bar,
+[data-theme="dark"] .progress-track {
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+}
+
+/* Task items glass effect */
+[data-theme="dark"] .planner-task,
+[data-theme="dark"] .agenda-item {
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--glass-border);
 }
 
 /* ===== Reset & Base ===== */
@@ -81,6 +189,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  font-family: inherit;
 }
 
 html {
@@ -90,12 +199,33 @@ html {
 }
 
 body {
-  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.6;
   min-height: 100vh;
   transition: background-color var(--transition-normal), color var(--transition-normal);
+}
+
+[data-theme="dark"] body {
+  background:
+    /* Primary accent blob - top left */
+    radial-gradient(ellipse 80% 60% at 10% 10%, color-mix(in srgb, var(--accent), transparent 70%) 0%, transparent 50%),
+    /* Secondary accent blob - top right */
+    radial-gradient(ellipse 60% 50% at 90% 15%, color-mix(in srgb, var(--accent), #a855f7 50%) 0%, transparent 40%),
+    /* Warm accent - bottom left */
+    radial-gradient(ellipse 70% 60% at 5% 85%, color-mix(in srgb, #f59e0b, transparent 80%) 0%, transparent 45%),
+    /* Cool accent - bottom right */
+    radial-gradient(ellipse 80% 70% at 95% 90%, color-mix(in srgb, var(--accent), #06b6d4 40%) 0%, transparent 50%),
+    /* Center glow */
+    radial-gradient(ellipse 100% 80% at 50% 50%, color-mix(in srgb, var(--accent), transparent 92%) 0%, transparent 60%),
+    /* Subtle purple tint - mid left */
+    radial-gradient(circle at 20% 50%, color-mix(in srgb, #8b5cf6, transparent 88%) 0%, transparent 35%),
+    /* Subtle teal - mid right */
+    radial-gradient(circle at 80% 40%, color-mix(in srgb, #14b8a6, transparent 90%) 0%, transparent 30%),
+    /* Base dark gradient */
+    linear-gradient(180deg, #0a0a12 0%, #0f0f18 50%, #0a0a0f 100%);
+  background-attachment: fixed;
 }
 
 /* ===== App Layout ===== */
@@ -126,6 +256,14 @@ body {
   backdrop-filter: blur(12px);
   z-index: 100;
   transition: all var(--transition-normal);
+}
+
+[data-theme="dark"] .header {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border-bottom: 1px solid var(--glass-border);
+  box-shadow: var(--glass-inner-glow), var(--glass-shadow);
 }
 
 .header-content {
@@ -167,16 +305,17 @@ body {
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1rem;
+  gap: 0.4rem;
+  padding: 0.5rem 0.75rem;
   border: none;
   background: transparent;
   color: var(--text-secondary);
-  font-size: 0.9375rem;
+  font-size: 0.8rem;
   font-weight: 500;
   border-radius: var(--border-radius-sm);
   cursor: pointer;
   transition: all var(--transition-fast);
+  white-space: nowrap;
 }
 
 .nav-item:hover {
@@ -1827,7 +1966,23 @@ td.material-cell {
   align-items: center;
   gap: 4px;
   background-color: var(--priority-high-bg);
+  border: 1px solid var(--priority-high);
   color: var(--priority-high);
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+/* ===== Delayed Tag ===== */
+.delayed-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.15));
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #f59e0b;
   font-size: 0.7rem;
   font-weight: 600;
   padding: 2px 6px;
@@ -1843,6 +1998,8 @@ td.material-cell {
   border: 1px solid rgba(245, 158, 11, 0.3);
   font-weight: 700;
   animation: pulse-delayed 2s ease-in-out infinite;
+  padding: 2px 6px;
+  border-radius: 4px;
 }
 
 @keyframes pulse-delayed {
@@ -1864,6 +2021,9 @@ td.material-cell {
   color: #22c55e;
   border: 1px solid rgba(34, 197, 94, 0.25);
   font-weight: 600;
+  border-radius: 4px;
+  padding-right: 3px;
+  padding-left: 3px;
 }
 
 /* ===== Study Clock Page ===== */

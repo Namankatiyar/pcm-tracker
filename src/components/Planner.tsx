@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Plus, Check, Trash2, Calendar as CalendarIcon, Clock, Pencil } from 'lucide-react';
-import { PlannerTask, Subject, SubjectData } from '../types';
+import { ChevronLeft, ChevronRight, Plus, Check, Trash2, Calendar as CalendarIcon, Clock, Pencil, ClockAlert, Hourglass } from 'lucide-react';
+import { PlannerTask, Subject, SubjectData, StudySession } from '../types';
 import { TaskModal } from './TaskModal';
 import { formatDateLocal, formatTime12Hour } from '../utils/date';
 
@@ -14,11 +14,12 @@ interface PlannerProps {
     examDate: string;
     initialOpenDate?: string | null;
     onConsumeInitialDate?: () => void;
+    sessions?: StudySession[];
 }
 
 type ViewMode = 'weekly' | 'monthly';
 
-export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTask, subjectData, examDate, initialOpenDate, onConsumeInitialDate }: PlannerProps) {
+export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTask, subjectData, examDate, initialOpenDate, onConsumeInitialDate, sessions = [] }: PlannerProps) {
     const [viewMode, setViewMode] = useState<ViewMode>('weekly');
     const [currentDate, setCurrentDate] = useState(new Date());
     const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -60,6 +61,59 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
         newDate.setDate(newDate.getDate() + 7);
         setCurrentDate(newDate);
     };
+
+    const handlePrevMonth = () => {
+        const newDate = new Date(currentDate);
+        newDate.setMonth(newDate.getMonth() - 1);
+        setCurrentDate(newDate);
+    };
+
+    const handleNextMonth = () => {
+        const newDate = new Date(currentDate);
+        newDate.setMonth(newDate.getMonth() + 1);
+        setCurrentDate(newDate);
+    };
+
+    // Get all days for the current month grid (includes padding days from prev/next months)
+    const getMonthDays = () => {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+
+        // Get the day of week for the first day (0 = Sunday, adjust for Monday start)
+        let startPadding = firstDay.getDay() - 1;
+        if (startPadding < 0) startPadding = 6; // Sunday becomes 6
+
+        const days: { date: Date; isCurrentMonth: boolean }[] = [];
+
+        // Add padding days from previous month
+        for (let i = startPadding - 1; i >= 0; i--) {
+            const d = new Date(year, month, -i);
+            days.push({ date: d, isCurrentMonth: false });
+        }
+
+        // Add days of current month
+        for (let i = 1; i <= lastDay.getDate(); i++) {
+            days.push({ date: new Date(year, month, i), isCurrentMonth: true });
+        }
+
+        // Add padding days from next month to complete the grid
+        // Only add enough to complete the current row (not a full 6 rows)
+        const totalDays = days.length;
+        const rowsNeeded = Math.ceil(totalDays / 7);
+        const cellsNeeded = rowsNeeded * 7;
+        const remaining = cellsNeeded - totalDays;
+
+        for (let i = 1; i <= remaining; i++) {
+            const d = new Date(year, month + 1, i);
+            days.push({ date: d, isCurrentMonth: false });
+        }
+
+        return days;
+    };
+
+    const monthDays = getMonthDays();
 
     const getTasksForDate = (dateStr: string) => {
         return tasks.filter(t => t.date === dateStr).sort((a, b) => {
@@ -134,20 +188,99 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
                 </div>
 
                 <div className="date-controls">
-                    <button onClick={handlePrevWeek}><ChevronLeft size={20} /></button>
+                    <button onClick={viewMode === 'monthly' ? handlePrevMonth : handlePrevWeek}>
+                        <ChevronLeft size={20} />
+                    </button>
                     <span className="current-date-range">
-                        {startOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {' '}
-                        {weekDays[6].toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        {viewMode === 'monthly'
+                            ? currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+                            : `${startOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekDays[6].toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                        }
                     </span>
-                    <button onClick={handleNextWeek}><ChevronRight size={20} /></button>
+                    <button onClick={viewMode === 'monthly' ? handleNextMonth : handleNextWeek}>
+                        <ChevronRight size={20} />
+                    </button>
                 </div>
             </div>
 
             {viewMode === 'monthly' ? (
-                <div className="monthly-placeholder">
-                    <CalendarIcon size={48} />
-                    <h3>Monthly View Coming Soon</h3>
-                    <p>Focus on your weekly goals for now!</p>
+                <div className="monthly-calendar">
+                    <div className="month-header-row">
+                        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
+                            <div key={day} className={`month-day-header ${i === 5 || i === 6 ? 'weekend' : ''}`}>{day}</div>
+                        ))}
+                    </div>
+                    <div className="month-grid">
+                        {monthDays.map(({ date, isCurrentMonth }, index) => {
+                            const dateStr = formatDateLocal(date);
+                            const dayTasks = getTasksForDate(dateStr);
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            const cellDate = new Date(date);
+                            cellDate.setHours(0, 0, 0, 0);
+                            const isToday = today.getTime() === cellDate.getTime();
+                            const isPast = cellDate < today;
+                            const isExamDay = dateStr === examDate;
+                            const pendingCount = dayTasks.filter(t => !t.completed).length;
+                            const completedCount = dayTasks.filter(t => t.completed).length;
+                            const totalTasks = dayTasks.length;
+                            // Random cross image for past days (1-5) with random contrast
+                            const crossImageNum = isPast ? ((date.getDate() + date.getMonth()) % 5) + 1 : 0;
+                            // Random contrast between 0.75 and 1.25 (25% range)
+                            const randomContrast = isPast ? 0.75 + ((date.getDate() * 7 + date.getMonth() * 13) % 50) / 100 : 1;
+
+                            // Get study hours for this day
+                            const dayStudyHours = sessions
+                                .filter(s => s.startTime.startsWith(dateStr))
+                                .reduce((acc, s) => acc + s.duration, 0);
+                            const studyHoursDisplay = dayStudyHours > 0
+                                ? dayStudyHours >= 3600
+                                    ? `${Math.floor(dayStudyHours / 3600)}h ${Math.floor((dayStudyHours % 3600) / 60)}m`
+                                    : `${Math.floor(dayStudyHours / 60)}m`
+                                : '';
+
+                            return (
+                                <div
+                                    key={index}
+                                    className={`month-day-cell ${isCurrentMonth ? '' : 'other-month'} ${isToday ? 'today' : ''} ${isExamDay ? 'exam-day' : ''} ${isPast ? 'past-day' : ''}`}
+                                    onClick={() => !isPast && handleAddTaskClick(dateStr)}
+                                    title={`${date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}${totalTasks > 0 ? ` • ${totalTasks} task(s)` : ''}${dayStudyHours > 0 ? ` • Studied: ${studyHoursDisplay}` : ''}${isPast ? ' (Past)' : ''}`}
+                                    style={{ cursor: isPast ? 'default' : 'pointer' }}
+                                >
+                                    {isPast && (
+                                        <div
+                                            className="cross-overlay"
+                                            style={{
+                                                backgroundImage: `url('/cross-images/cross${crossImageNum}.png')`,
+                                                filter: `contrast(${randomContrast})`
+                                            }}
+                                        />
+                                    )}
+                                    <div className="cell-top">
+                                        <span className="month-day-number">{date.getDate()}</span>
+                                    </div>
+                                    <div className="cell-center">
+                                        {studyHoursDisplay && <span className="study-hours">{studyHoursDisplay}</span>}
+                                    </div>
+                                    <div className="cell-content">
+                                        {totalTasks > 0 && (
+                                            <div className="month-task-dots">
+                                                {/* Show individual dots for each completed task */}
+                                                {Array.from({ length: Math.min(completedCount, 10) }).map((_, i) => (
+                                                    <span key={`c-${i}`} className="task-dot completed"></span>
+                                                ))}
+                                                {/* Show individual dots for each pending task */}
+                                                {Array.from({ length: Math.min(pendingCount, 10) }).map((_, i) => (
+                                                    <span key={`p-${i}`} className="task-dot pending"></span>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                    {isExamDay && <div className="exam-badge">📝</div>}
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
             ) : (
                 <div className="weekly-grid">
@@ -179,7 +312,7 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
 
             <style>{`
                 .planner-page {
-                    padding: 2rem;
+                    padding: 0 2rem 2rem 2rem;
                     max-width: 100%;
                     box-sizing: border-box;
                     margin: 0 auto;
@@ -317,6 +450,22 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
                     display: flex;
                     flex-direction: column;
                     gap: 0.75rem;
+                    max-height: 280px;
+                    overflow-y: auto;
+                    padding-right: 4px;
+                }
+                .tasks-list::-webkit-scrollbar {
+                    width: 4px;
+                }
+                .tasks-list::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+                .tasks-list::-webkit-scrollbar-thumb {
+                    background: var(--border);
+                    border-radius: 4px;
+                }
+                .tasks-list::-webkit-scrollbar-thumb:hover {
+                    background: var(--text-muted);
                 }
                 .planner-task {
                     background: var(--bg-primary);
@@ -473,12 +622,285 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
                 }
                 .day-column.past-day {
                     opacity: 0.55;
-                    pointer-events: none;
                     background: var(--bg-tertiary);
                 }
                 .day-column.past-day .day-number {
                     background: var(--text-muted);
                     color: var(--bg-primary);
+                }
+                .day-column.past-day .header-add-btn {
+                    pointer-events: none;
+                    opacity: 0.3;
+                }
+                .day-column.past-day .inline-add-task {
+                    pointer-events: none;
+                    opacity: 0.3;
+                }
+
+                /* ===== Monthly Calendar Styles ===== */
+                .monthly-calendar {
+                    max-width: 1400px;
+                    margin: 0 auto;
+                    background: var(--bg-secondary);
+                    border-radius: 12px;
+                    padding: 1rem;
+                    box-shadow: var(--shadow-lg), var(--shadow-glow);
+                    border: 1px solid var(--border);
+                }
+
+                .month-header-row {
+                    display: grid;
+                    grid-template-columns: repeat(7, 1fr);
+                    gap: 6px;
+                    margin-bottom: 8px;
+                    padding: 6px;
+                    background: var(--bg-tertiary);
+                    border-radius: 10px;
+                    border: 1px solid var(--border);
+                }
+
+                .month-day-header {
+                    text-align: center;
+                    font-weight: 700;
+                    font-size: 0.75rem;
+                    color: var(--text-secondary);
+                    padding: 0.35rem;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    background: var(--accent-light);
+                    border-radius: 6px;
+                    border: 1px solid var(--accent);
+                }
+
+                .month-day-header.weekend {
+                    background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.1));
+                    border-color: rgba(245, 158, 11, 0.3);
+                    color: #f59e0b;
+                }
+
+                .month-grid {
+                    display: grid;
+                    grid-template-columns: repeat(7, 1fr);
+                    gap: 6px;
+                }
+
+                .month-day-cell {
+                    aspect-ratio: 1;
+                    background: var(--bg-secondary);
+                    border-radius: 8px;
+                    display: flex;
+                    flex-direction: column;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    border: 1px solid var(--border);
+                    position: relative;
+                    overflow: hidden;
+                    padding: 4px;
+                }
+
+                /* Past days - dark background with dimmed opacity (same as other-month.past-day) */
+                .month-day-cell.past-day {
+                    opacity: 0.6;
+                    background: var(--bg-primary);
+                    border-color: var(--border);
+                }
+
+                .month-day-cell::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    height: 3px;
+                    background: transparent;
+                    transition: background 0.2s;
+                }
+
+                .month-day-cell:not(.past-day):hover {
+                    background: var(--bg-primary);
+                    border-color: var(--accent);
+                    transform: translateY(-2px);
+                    box-shadow: var(--shadow-md);
+                }
+
+                .month-day-cell:not(.past-day):hover::before {
+                    background: var(--accent);
+                }
+
+                /* Future padding days from other months - same as regular cells */
+                .month-day-cell.other-month:not(.past-day) {
+                    opacity: 1;
+                    background: var(--bg-secondary);
+                }
+
+                /* Past padding days from other months - same as regular past days */
+                .month-day-cell.other-month.past-day {
+                    opacity: 0.6;
+                    background: var(--bg-primary);
+                }
+
+                .month-day-cell.other-month:not(.past-day):hover {
+                    opacity: 1;
+                }
+
+                /* Today styling - applies to both regular and other-month */
+                .month-day-cell.today,
+                .month-day-cell.other-month.today {
+                    background: linear-gradient(135deg, var(--accent-light), transparent);
+                    border-color: var(--accent);
+                    box-shadow: 0 0 0 2px var(--accent-light);
+                    opacity: 1;
+                }
+
+                .month-day-cell.today::before,
+                .month-day-cell.other-month.today::before {
+                    background: var(--accent);
+                }
+
+                .month-day-cell.exam-day {
+                    background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(217, 119, 6, 0.08));
+                    border-color: #f59e0b;
+                }
+
+                .month-day-cell.exam-day::before {
+                    background: linear-gradient(90deg, #f59e0b, #d97706);
+                }
+
+                .month-day-cell.exam-day .month-day-number {
+                    color: #f59e0b;
+                }
+
+                /* Past Day Styling with Cross Overlay */
+                .month-day-cell.past-day {
+                    cursor: default;
+                }
+
+                .month-day-cell.past-day:hover {
+                    transform: none;
+                    box-shadow: none;
+                }
+
+                .cross-overlay {
+                    position: absolute;
+                    top: 15%;
+                    left: 15%;
+                    right: 15%;
+                    bottom: 15%;
+                    background-size: contain;
+                    background-position: center;
+                    background-repeat: no-repeat;
+                    opacity: 1;
+                    z-index: 1;
+                    pointer-events: none;
+                }
+
+                .month-day-cell.past-day .month-day-number,
+                .month-day-cell.past-day .cell-center {
+                    z-index: 2;
+                    position: relative;
+                }
+
+                .month-day-cell.past-day .cell-content {
+                    z-index: 2;
+                }
+
+                .month-day-cell.past-day .month-day-number {
+                    opacity: 0.6;
+                }
+
+                .cell-top {
+                    display: flex;
+                    justify-content: flex-end;
+                    width: 100%;
+                    z-index: 2;
+                    position: relative;
+                }
+
+                .month-day-number {
+                    font-size: 1.1rem;
+                    font-weight: 700;
+                    color: var(--text-primary);
+                    transition: all 0.2s;
+                    width: 26px;
+                    height: 26px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 50%;
+                }
+
+                .month-day-cell.today .month-day-number,
+                .month-day-cell.other-month.today .month-day-number {
+                    background: var(--accent);
+                    color: var(--accent-text);
+                    width: 26px;
+                    height: 26px;
+                    border-radius: 50%;
+                }
+
+                .cell-center {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    z-index: 2;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                .study-hours {
+                    font-size: 1.4rem;
+                    font-weight: 700;
+                    color: var(--accent);
+                    text-shadow: 0 1px 3px rgba(0,0,0,0.15);
+                    letter-spacing: -0.5px;
+                }
+
+                .cell-content {
+                    position: absolute;
+                    bottom: 4px;
+                    left: 4px;
+                    display: flex;
+                    align-items: flex-end;
+                    justify-content: flex-start;
+                    z-index: 2;
+                }
+
+                .month-task-dots {
+                    display: flex;
+                    flex-wrap: wrap-reverse;
+                    gap: 2px;
+                    max-width: 100%;
+                }
+
+                .task-dot {
+                    width: 5px;
+                    height: 5px;
+                    border-radius: 50%;
+                    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+                }
+
+                .task-dot.pending {
+                    background: var(--accent);
+                    animation: pulse-dot 2s ease-in-out infinite;
+                }
+
+                .task-dot.completed {
+                    background: #22c55e;
+                }
+
+                @keyframes pulse-dot {
+                    0%, 100% { opacity: 1; transform: scale(1); }
+                    50% { opacity: 0.7; transform: scale(0.9); }
+                }
+
+                .exam-badge {
+                    position: absolute;
+                    top: 4px;
+                    left: 4px;
+                    font-size: 0.75rem;
+                    z-index: 3;
                 }
             `}</style>
         </div>
@@ -581,8 +1003,13 @@ function DayColumn({ date, tasks, onAddTask, onEditTask, onToggleTask, onDeleteT
                             >
                                 <div className="task-left">
                                     <div className="task-title">
-                                        {task.title}
-                                        {(isOverdue(task) || task.wasShifted) && <span className="pending-tag" style={{ marginLeft: '8px', fontSize: '0.65rem' }}>Pending</span>}
+                                        {task.title && <span style={{ marginRight: '6px' }}>{task.title}</span>}
+                                        {isOverdue(task) && !task.wasShifted && <span className="pending-tag" style={{ fontSize: '0.65rem', display: 'inline-flex', alignItems: 'center', gap: '4px', justifyContent: 'center', verticalAlign: 'middle' }}>
+                                            <ClockAlert size={13} />
+                                            Pending</span>}
+                                        {task.wasShifted && !task.completed && <span className="delayed-tag" style={{ fontSize: '0.65rem', display: 'inline-flex', alignItems: 'center', gap: '4px', justifyContent: 'center', verticalAlign: 'middle' }}>
+                                            <Hourglass size={13} />
+                                            Delayed</span>}
                                     </div>
                                     <div className="task-subtitle">
                                         {task.subject && (
@@ -596,7 +1023,7 @@ function DayColumn({ date, tasks, onAddTask, onEditTask, onToggleTask, onDeleteT
 
                                 <div className="task-right">
                                     <div className={`task-meta ${task.wasShifted && !task.completed ? 'delayed' : ''} ${task.completed ? 'completed-time' : ''}`}>
-                                        <Clock size={12} />
+                                        <Clock size={13} />
                                         <span>{getTaskTimeDisplay(task)}</span>
                                     </div>
                                     <div className="task-actions">

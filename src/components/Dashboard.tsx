@@ -3,7 +3,7 @@ import { ProgressRing } from './ProgressBar';
 import { Subject, SubjectData, PlannerTask } from '../types';
 import { TaskLog } from './TaskLog';
 import { DatePickerModal } from './DatePickerModal';
-import { Atom, FlaskConical, Calculator, Zap, Calendar, Check } from 'lucide-react';
+import { Atom, FlaskConical, Calculator, Zap, Calendar, Check, ClockAlert, Hourglass } from 'lucide-react';
 import { formatDateLocal, formatTime12Hour } from '../utils/date';
 
 interface DashboardProps {
@@ -203,7 +203,10 @@ export function Dashboard({
                                     <div className="agenda-info">
                                         <span className="agenda-title">
                                             {task.title}
-                                            {(isTaskOverdue(task) || task.wasShifted) && !task.completed && <> <span className="pending-tag">Pending</span></>}
+                                            {isTaskOverdue(task) && !task.wasShifted && !task.completed && <> <span className="pending-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                                <ClockAlert size={11} />Pending</span></>}
+                                            {task.wasShifted && !task.completed && <> <span className="delayed-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                                <Hourglass size={11} />Delayed</span></>}
                                         </span>
                                         <div className="agenda-subtitle">
                                             {task.subject && (

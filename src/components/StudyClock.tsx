@@ -24,7 +24,20 @@ interface PausedTimerState {
     pausedAt: string; // ISO timestamp when paused
 }
 
+// Interface for persisting running timer state
+interface RunningTimerState {
+    startTime: string; // ISO timestamp when timer started
+    pausedTimeAccumulated: number; // Time accumulated before current run
+    taskType: 'chapter' | 'custom' | 'task';
+    selectedSubject: Subject | '';
+    selectedChapter: number | '';
+    selectedMaterial: string;
+    customTitle: string;
+    selectedTaskId: string;
+}
+
 const PAUSED_TIMER_STORAGE_KEY = 'jee-tracker-paused-timer';
+const RUNNING_TIMER_STORAGE_KEY = 'jee-tracker-running-timer';
 
 export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSession, plannerTasks }: StudyClockProps) {
     // Timer state
@@ -42,12 +55,34 @@ export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSessio
     const [customTitle, setCustomTitle] = useState('');
     const [selectedTaskId, setSelectedTaskId] = useState<string>('');
 
-    // Restore paused timer state on mount
+    // Restore paused or running timer state on mount
     useEffect(() => {
         try {
-            const savedState = localStorage.getItem(PAUSED_TIMER_STORAGE_KEY);
-            if (savedState) {
-                const state: PausedTimerState = JSON.parse(savedState);
+            // First check for running timer (higher priority)
+            const savedRunningState = localStorage.getItem(RUNNING_TIMER_STORAGE_KEY);
+            if (savedRunningState) {
+                const state: RunningTimerState = JSON.parse(savedRunningState);
+                const savedStartTime = new Date(state.startTime);
+                const now = new Date();
+                const elapsed = Math.floor((now.getTime() - savedStartTime.getTime()) / 1000) + state.pausedTimeAccumulated;
+
+                setElapsedSeconds(elapsed);
+                setPausedTime(state.pausedTimeAccumulated);
+                setStartTime(savedStartTime);
+                setTaskType(state.taskType);
+                setSelectedSubject(state.selectedSubject);
+                setSelectedChapter(state.selectedChapter);
+                setSelectedMaterial(state.selectedMaterial);
+                setCustomTitle(state.customTitle);
+                setSelectedTaskId(state.selectedTaskId);
+                setTimerState('running');
+                return;
+            }
+
+            // Fall back to paused timer if no running timer
+            const savedPausedState = localStorage.getItem(PAUSED_TIMER_STORAGE_KEY);
+            if (savedPausedState) {
+                const state: PausedTimerState = JSON.parse(savedPausedState);
                 setElapsedSeconds(state.elapsedSeconds);
                 setPausedTime(state.elapsedSeconds);
                 setTaskType(state.taskType);
@@ -59,8 +94,9 @@ export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSessio
                 setTimerState('paused');
             }
         } catch (error) {
-            console.error('Error restoring paused timer state:', error);
+            console.error('Error restoring timer state:', error);
             localStorage.removeItem(PAUSED_TIMER_STORAGE_KEY);
+            localStorage.removeItem(RUNNING_TIMER_STORAGE_KEY);
         }
     }, []);
 
@@ -87,13 +123,29 @@ export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSessio
             // Update every second, synced to the clock
             timerRef.current = window.setInterval(updateTimer, 1000);
 
+            // Save running state to localStorage for persistence
+            const runningState: RunningTimerState = {
+                startTime: startTime.toISOString(),
+                pausedTimeAccumulated: pausedTime,
+                taskType,
+                selectedSubject,
+                selectedChapter,
+                selectedMaterial,
+                customTitle,
+                selectedTaskId
+            };
+            localStorage.setItem(RUNNING_TIMER_STORAGE_KEY, JSON.stringify(runningState));
+
             return () => {
                 if (timerRef.current) {
                     clearInterval(timerRef.current);
                 }
             };
+        } else {
+            // Clear running state when not running
+            localStorage.removeItem(RUNNING_TIMER_STORAGE_KEY);
         }
-    }, [timerState, startTime, pausedTime]);
+    }, [timerState, startTime, pausedTime, taskType, selectedSubject, selectedChapter, selectedMaterial, customTitle, selectedTaskId]);
 
     const formatTime = (seconds: number): string => {
         const hrs = Math.floor(seconds / 3600);
@@ -140,6 +192,7 @@ export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSessio
     const handleStart = () => {
         // Clear any saved paused state when starting fresh
         localStorage.removeItem(PAUSED_TIMER_STORAGE_KEY);
+        localStorage.removeItem(RUNNING_TIMER_STORAGE_KEY);
         setStartTime(new Date());
         setTimerState('running');
     };
@@ -166,8 +219,9 @@ export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSessio
     };
 
     const handleResume = () => {
-        // Clear saved state when resuming
+        // Clear saved paused state when resuming
         localStorage.removeItem(PAUSED_TIMER_STORAGE_KEY);
+        localStorage.removeItem(RUNNING_TIMER_STORAGE_KEY);
         setStartTime(new Date());
         setTimerState('running');
     };
@@ -193,8 +247,9 @@ export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSessio
             onAddSession(session);
         }
 
-        // Clear saved paused state
+        // Clear all saved timer states
         localStorage.removeItem(PAUSED_TIMER_STORAGE_KEY);
+        localStorage.removeItem(RUNNING_TIMER_STORAGE_KEY);
 
         // Reset timer
         setTimerState('idle');
@@ -209,8 +264,9 @@ export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSessio
             clearInterval(timerRef.current);
         }
 
-        // Clear saved paused state without saving session
+        // Clear all saved timer states without saving session
         localStorage.removeItem(PAUSED_TIMER_STORAGE_KEY);
+        localStorage.removeItem(RUNNING_TIMER_STORAGE_KEY);
 
         // Reset timer
         setTimerState('idle');

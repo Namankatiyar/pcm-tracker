@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ProgressRing } from './ProgressBar';
-import { Subject, SubjectData, PlannerTask } from '../types';
+import { Subject, SubjectData, PlannerTask, StudySession } from '../types';
 import { TaskLog } from './TaskLog';
 import { DatePickerModal } from './DatePickerModal';
 import { Atom, FlaskConical, Calculator, Zap, Calendar, Check, ClockAlert, Hourglass } from 'lucide-react';
@@ -19,6 +19,7 @@ interface DashboardProps {
     examDate: string;
     onExamDateChange: (date: string) => void;
     onQuickAdd: () => void;
+    studySessions?: StudySession[];
 }
 
 export function Dashboard({
@@ -33,7 +34,8 @@ export function Dashboard({
     onToggleTask,
     examDate,
     onExamDateChange,
-    onQuickAdd
+    onQuickAdd,
+    studySessions = []
 }: DashboardProps) {
     const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
@@ -140,6 +142,17 @@ export function Dashboard({
                     </div>
                     <div className="overall-ring-wrapper">
                         <ProgressRing progress={overallProgress} size={130} strokeWidth={10} color="var(--accent)" />
+                        <div className="total-study-time">
+                            <span className="study-time-label">Total Studied</span>
+                            <span className="study-time-value">
+                                {(() => {
+                                    const totalSeconds = studySessions.reduce((acc, s) => acc + s.duration, 0);
+                                    const hours = Math.floor(totalSeconds / 3600);
+                                    const minutes = Math.floor((totalSeconds % 3600) / 60);
+                                    return hours > 0 ? `${hours}h ${minutes}m` : minutes > 0 ? `${minutes}m` : '0m';
+                                })()}
+                            </span>
+                        </div>
                     </div>
                     <div className="overall-stats">
                         <div className="stat">

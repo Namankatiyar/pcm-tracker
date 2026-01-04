@@ -22,7 +22,7 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
     const [customSubject, setCustomSubject] = useState<Subject | 'none'>('none');
     const [selectedSubject, setSelectedSubject] = useState<Subject | ''>('');
     const [selectedChapterSerial, setSelectedChapterSerial] = useState<number | ''>('');
-    const [selectedMaterial, setSelectedMaterial] = useState('');
+    const [selectedMaterial, setSelectedMaterial] = useState<string[]>([]);
     const [time, setTime] = useState('');
     const [date, setDate] = useState(initialDate);
     const [chapterSearch, setChapterSearch] = useState('');
@@ -61,7 +61,7 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                 } else {
                     setSelectedSubject(taskToEdit.subject || '');
                     setSelectedChapterSerial(taskToEdit.chapterSerial || '');
-                    setSelectedMaterial(taskToEdit.material || '');
+                    setSelectedMaterial(taskToEdit.material ? [taskToEdit.material] : []);
                 }
             } else {
                 setStep(1);
@@ -70,7 +70,7 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                 setCustomSubject('none');
                 setSelectedSubject('');
                 setSelectedChapterSerial('');
-                setSelectedMaterial('');
+                setSelectedMaterial([]);
                 setTime('');
                 setDate(initialDate);
 
@@ -130,20 +130,24 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                 subject: customSubject === 'none' ? undefined : customSubject
             });
         } else {
-            if (!selectedSubject || selectedChapterSerial === '' || !selectedMaterial) return;
+            if (!selectedSubject || selectedChapterSerial === '' || selectedMaterial.length === 0) return;
 
             const subjectInfo = subjectData[selectedSubject as Subject];
             const chapter = subjectInfo?.chapters.find(c => c.serial === selectedChapterSerial);
 
             if (!chapter) return;
 
-            onSave({
-                ...baseTask,
-                title: chapter.name,
-                subtitle: selectedMaterial,
-                subject: selectedSubject,
-                chapterSerial: selectedChapterSerial,
-                material: selectedMaterial
+            // Create a task for each selected material
+            selectedMaterial.forEach((material, index) => {
+                onSave({
+                    ...baseTask,
+                    id: index === 0 ? baseTask.id : crypto.randomUUID(), // Keep original ID for first, new IDs for rest
+                    title: chapter.name,
+                    subtitle: material,
+                    subject: selectedSubject,
+                    chapterSerial: selectedChapterSerial,
+                    material: material
+                });
             });
         }
         onClose();
@@ -201,7 +205,7 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                                                     onClick={() => {
                                                         setSelectedSubject(subj);
                                                         setSelectedChapterSerial('');
-                                                        setSelectedMaterial('');
+                                                        setSelectedMaterial([]);
                                                         setChapterSearch('');
                                                     }}
                                                     style={{ '--subj-color': `var(--${subj})` } as any}
@@ -250,7 +254,7 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                                                     </span>
                                                     <button className="change-btn" onClick={() => {
                                                         setSelectedChapterSerial('');
-                                                        setSelectedMaterial('');
+                                                        setSelectedMaterial([]);
                                                     }}>Change</button>
                                                 </div>
                                             )}
@@ -259,13 +263,17 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
 
                                     {selectedChapterSerial !== '' && (
                                         <div className="form-group">
-                                            <label>Material</label>
+                                            <label>Materials (select multiple)</label>
                                             <div className="material-pills">
                                                 {availableMaterials.map((m) => (
                                                     <button
                                                         key={m}
-                                                        className={`material-pill ${selectedMaterial === m ? 'selected' : ''}`}
-                                                        onClick={() => setSelectedMaterial(m)}
+                                                        className={`material-pill ${selectedMaterial.includes(m) ? 'selected' : ''}`}
+                                                        onClick={() => setSelectedMaterial(prev =>
+                                                            prev.includes(m)
+                                                                ? prev.filter(mat => mat !== m)
+                                                                : [...prev, m]
+                                                        )}
                                                     >
                                                         {m}
                                                     </button>
@@ -390,7 +398,7 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                                 onClick={handleSave}
                                 disabled={
                                     (taskType === 'custom' && !customTitle) ||
-                                    (taskType === 'chapter' && (!selectedSubject || !selectedChapterSerial || !selectedMaterial))
+                                    (taskType === 'chapter' && (!selectedSubject || !selectedChapterSerial || selectedMaterial.length === 0))
                                 }
                             >
                                 {taskToEdit ? 'Save Changes' : 'Add Task'}
@@ -403,8 +411,8 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
             <style>{`
                 /* Layout Fixes */
                 .modal-overlay {
-                    backdrop-filter: blur(2px) !important;
-                    background: rgba(0, 0, 0, 0.3) !important;
+                    backdrop-filter: blur(6px) !important;
+                    background: rgba(0, 0, 0, 0.4) !important;
                 }
                 .modal-content.input-modal {
                     display: flex;
@@ -437,7 +445,7 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                     padding: 1rem 1.5rem;
                     border-top: 1px solid var(--glass-border);
                     background: rgba(27, 27, 27, 0.08);
-                    backdrop-filter: blur(10px);
+                    backdrop-filter: blur(var(--glass-blur));
                     border-radius: 0 0 24px 24px;
                     flex-shrink: 0;
                     display: flex;

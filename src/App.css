@@ -48,6 +48,11 @@
   --content-max-width: 1200px;
   --border-radius: 12px;
   --border-radius-sm: 8px;
+
+  /* Modular Background Variables for major UI elements (light theme) */
+  --bg-card: var(--bg-secondary);
+  --bg-card-item: var(--bg-tertiary);
+  --bg-modal: rgba(255, 255, 255, 0.6);
 }
 
 [data-theme="dark"] {
@@ -73,10 +78,18 @@
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
   --shadow-glow: 0 0 40px color-mix(in srgb, var(--accent), transparent 75%);
 
+  /* Modular Background Variables for major UI elements */
+  --bg-card: rgba(18, 18, 26, 0.6);
+  /* Main cards background */
+  --bg-card-item: rgba(30, 30, 45, 0.6);
+  /* Items inside cards (agenda-item, tasks) */
+  --bg-modal: rgba(24, 24, 35, 0.45);
+  /* Modal/dialog backgrounds - translucent */
+
   /* Glassmorphism Variables */
   --glass-bg: rgba(18, 18, 26, 0.35);
   --glass-bg-hover: rgba(26, 26, 40, 0.45);
-  --glass-blur: 20px;
+  --glass-blur: 4px;
   --glass-border: rgba(255, 255, 255, 0.1);
   --glass-border-light: rgba(255, 255, 255, 0.15);
   --glass-inner-glow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
@@ -115,13 +128,13 @@
 [data-theme="dark"] .nav-item:hover,
 [data-theme="dark"] .nav-item.active {
   background: var(--glass-bg-hover);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(8px);
 }
 
 /* Glass effect for modals */
 [data-theme="dark"] .modal-overlay {
   background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(6px);
 }
 
 /* Glass input fields */
@@ -130,7 +143,7 @@
 [data-theme="dark"] select {
   background: rgba(0, 0, 0, 0.3) !important;
   border-color: var(--glass-border) !important;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(6px);
 }
 
 [data-theme="dark"] input:focus,
@@ -144,7 +157,7 @@
 [data-theme="dark"] .btn-primary,
 [data-theme="dark"] .primary-action-btn {
   background: color-mix(in srgb, var(--accent), transparent 20%);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(8px);
   border: 1px solid color-mix(in srgb, var(--accent), white 20%);
   box-shadow: var(--glass-inner-glow);
 }
@@ -152,7 +165,7 @@
 [data-theme="dark"] .btn-secondary,
 [data-theme="dark"] .secondary-btn {
   background: var(--glass-bg);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(8px);
   border: 1px solid var(--glass-border);
 }
 
@@ -174,10 +187,10 @@
   backdrop-filter: blur(4px);
 }
 
-/* Task items glass effect */
+/* Task items - using modular background variable */
 [data-theme="dark"] .planner-task,
 [data-theme="dark"] .agenda-item {
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--bg-card-item);
   backdrop-filter: blur(8px);
   border: 1px solid var(--glass-border);
 }
@@ -534,14 +547,39 @@ body {
 
 .overall-ring-wrapper {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
   flex: 1;
-  padding: 0;
-  padding-bottom: 0.75rem;
-  /* Add padding to balance top/bottom spacing relative to header/stats */
+  padding: 1rem 0;
   margin: 0;
   overflow: hidden;
+  gap: 1.5rem;
+}
+
+.total-study-time {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 1rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius-sm);
+}
+
+.study-time-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.study-time-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent);
 }
 
 .overall-stats {
@@ -1515,7 +1553,7 @@ td.material-cell {
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
   animation: fadeIn 0.2s ease;
 }
 
@@ -2443,11 +2481,13 @@ td.material-cell {
 
 /* Session Log Card */
 .session-log-card {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
   border-radius: var(--border-radius);
   padding: 1.5rem;
-  box-shadow: var(--shadow-lg), var(--shadow-glow);
+  box-shadow: var(--glass-inner-glow), var(--glass-shadow);
 }
 
 .session-log-card h3 {
@@ -2555,13 +2595,38 @@ td.material-cell {
   background: var(--priority-high-bg);
 }
 
+.session-edit-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.session-edit-btn:hover {
+  color: var(--accent);
+  background: var(--accent-light);
+}
+
+.session-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
 /* Statistics Card */
 .statistics-card {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
   border-radius: var(--border-radius);
   padding: 1.5rem;
-  box-shadow: var(--shadow-lg), var(--shadow-glow);
+  box-shadow: var(--glass-inner-glow), var(--glass-shadow);
 }
 
 .statistics-card h3 {
@@ -2670,7 +2735,7 @@ td.material-cell {
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -2679,7 +2744,9 @@ td.material-cell {
 }
 
 .distribution-modal {
-  background: var(--bg-secondary);
+  background: var(--bg-modal, var(--bg-secondary));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border: 1px solid var(--border);
   border-radius: var(--border-radius);
   padding: 2rem;
@@ -2689,6 +2756,25 @@ td.material-cell {
   overflow-y: auto;
   box-shadow: var(--shadow-lg), var(--shadow-glow);
   animation: slideUp 0.3s ease;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.distribution-modal::-webkit-scrollbar {
+  width: 6px;
+}
+
+.distribution-modal::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.distribution-modal::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 4px;
+}
+
+.distribution-modal::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-muted);
 }
 
 @keyframes slideUp {
@@ -2772,6 +2858,19 @@ td.material-cell {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  margin: -0.5rem;
+  border-radius: var(--border-radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.distribution-bar-item:hover {
+  background: var(--bg-tertiary);
+}
+
+.distribution-bar-item:hover .distribution-bar-label {
+  color: var(--text-primary);
 }
 
 .distribution-bar-header {
@@ -2819,6 +2918,242 @@ td.material-cell {
 
 .distribution-bar-fill.custom {
   background: linear-gradient(90deg, #8b5cf6, #a78bfa);
+}
+
+/* Distribution Subject Section */
+.distribution-subject-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Inline Chapter Graph (below subject) */
+.chapter-graph-inline {
+  margin-top: 0.5rem;
+  margin-left: 1rem;
+  padding: 0.75rem;
+  background: var(--bg-tertiary);
+  border-radius: var(--border-radius-sm);
+  border-left: 3px solid var(--accent);
+  animation: slideUp 0.2s ease;
+}
+
+/* Chapter Comparison Graph Cards */
+.chapter-graphs-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.chapter-graph-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius-sm);
+  padding: 1rem;
+  animation: slideUp 0.2s ease;
+}
+
+.chapter-graph-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.chapter-graph-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.chapter-graph-title.physics {
+  color: var(--physics);
+}
+
+.chapter-graph-title.chemistry {
+  color: var(--chemistry);
+}
+
+.chapter-graph-title.maths {
+  color: var(--maths);
+}
+
+.chapter-graph-close {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.chapter-graph-close:hover {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+}
+
+.chapter-graph-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.chapter-bar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.chapter-bar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+}
+
+.chapter-bar-name {
+  color: var(--text-primary);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 60%;
+}
+
+.chapter-bar-time {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.chapter-bar-track {
+  height: 8px;
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.chapter-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.chapter-bar-fill.physics {
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+}
+
+.chapter-bar-fill.chemistry {
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.chapter-bar-fill.maths {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+/* Edit Session Modal Form */
+.edit-session-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.edit-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.edit-form-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.edit-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius-sm);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.95rem;
+  transition: all var(--transition-fast);
+}
+
+.edit-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-light);
+}
+
+.duration-inputs {
+  display: flex;
+  gap: 1rem;
+}
+
+.duration-input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.duration-input {
+  width: 80px;
+  text-align: center;
+}
+
+.duration-label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.edit-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.edit-cancel-btn {
+  padding: 0.6rem 1.25rem;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.edit-cancel-btn:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.edit-save-btn {
+  padding: 0.6rem 1.25rem;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--accent-border);
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.edit-save-btn:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
 }
 
 /* Fullscreen Timer */

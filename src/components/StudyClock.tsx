@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Pause, Square, Trash2, Clock, ChevronDown, X } from 'lucide-react';
+import { Play, Pause, Square, Trash2, Clock, ChevronDown, X, Pencil } from 'lucide-react';
 import { Subject, SubjectData, StudySession, PlannerTask } from '../types';
 
 interface StudyClockProps {
@@ -7,6 +7,7 @@ interface StudyClockProps {
     sessions: StudySession[];
     onAddSession: (session: StudySession) => void;
     onDeleteSession: (sessionId: string) => void;
+    onEditSession: (session: StudySession) => void;
     plannerTasks: PlannerTask[];
 }
 
@@ -39,7 +40,7 @@ interface RunningTimerState {
 const PAUSED_TIMER_STORAGE_KEY = 'jee-tracker-paused-timer';
 const RUNNING_TIMER_STORAGE_KEY = 'jee-tracker-running-timer';
 
-export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSession, plannerTasks }: StudyClockProps) {
+export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSession, onEditSession, plannerTasks }: StudyClockProps) {
     // Timer state
     const [timerState, setTimerState] = useState<TimerState>('idle');
     const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -105,6 +106,17 @@ export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSessio
     const [statsChapter, setStatsChapter] = useState<number | 'all'>('all');
     const [statsMaterial, setStatsMaterial] = useState<string | 'all'>('all');
     const [showDistribution, setShowDistribution] = useState(false);
+
+    // Edit modal state
+    const [editingSession, setEditingSession] = useState<StudySession | null>(null);
+    const [editTitle, setEditTitle] = useState('');
+    const [editHours, setEditHours] = useState(0);
+    const [editMinutes, setEditMinutes] = useState(0);
+    const [editSubject, setEditSubject] = useState<Subject | ''>('');
+    const [editMaterial, setEditMaterial] = useState('');
+
+    // Track which subject chapter graphs are open (can have multiple)
+    const [openChapterGraphs, setOpenChapterGraphs] = useState<Subject[]>([]);
 
     const timerRef = useRef<number | null>(null);
 
@@ -193,6 +205,7 @@ export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSessio
         // Clear any saved paused state when starting fresh
         localStorage.removeItem(PAUSED_TIMER_STORAGE_KEY);
         localStorage.removeItem(RUNNING_TIMER_STORAGE_KEY);
+        setPausedTime(0);
         setStartTime(new Date());
         setTimerState('running');
     };
@@ -316,9 +329,9 @@ export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSessio
             if (e.code === 'Space') {
                 e.preventDefault();
                 handleSpacebarToggle();
-            } else if (e.code === 'KeyF' && timerState === 'running') {
+            } else if (e.code === 'KeyF') {
                 e.preventDefault();
-                setIsFullscreen(true);
+                setIsFullscreen(prev => !prev);
             } else if (e.code === 'Escape' && isFullscreen) {
                 e.preventDefault();
                 handlePause();
@@ -376,9 +389,72 @@ export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSessio
         ) || []
         : [];
 
+    // Get all unique materials from sessions - either for specific subject or all
     const statsAvailableMaterials = statsSubject !== 'all'
         ? [...new Set(sessions.filter(s => s.subject === statsSubject && (statsChapter === 'all' || s.chapterSerial === statsChapter)).map(s => s.material).filter(Boolean))]
-        : [];
+        : [...new Set(sessions.map(s => s.material).filter(Boolean))] as string[];
+
+    // Edit session helper functions
+    const openEditModal = (session: StudySession) => {
+        setEditingSession(session);
+        setEditTitle(session.title);
+        const hours = Math.floor(session.duration / 3600);
+        const mins = Math.floor((session.duration % 3600) / 60);
+        setEditHours(hours);
+        setEditMinutes(mins);
+        setEditSubject(session.subject || '');
+        setEditMaterial(session.material || '');
+    };
+
+    const closeEditModal = () => {
+        setEditingSession(null);
+        setEditTitle('');
+        setEditHours(0);
+        setEditMinutes(0);
+        setEditSubject('');
+        setEditMaterial('');
+    };
+
+    const saveEditedSession = () => {
+        if (!editingSession) return;
+        const newDuration = editHours * 3600 + editMinutes * 60;
+        const updatedSession: StudySession = {
+            ...editingSession,
+            title: editTitle || editingSession.title,
+            duration: newDuration > 0 ? newDuration : editingSession.duration,
+            subject: editSubject || undefined,
+            material: editMaterial || undefined
+        };
+        onEditSession(updatedSession);
+        closeEditModal();
+    };
+
+    // Get top 5 chapters by study time for a subject
+    const getTopChaptersForSubject = (subject: Subject) => {
+        const chapterTimes: Map<number, { name: string; time: number }> = new Map();
+
+        sessions
+            .filter(s => s.subject === subject && s.chapterSerial)
+            .forEach(s => {
+                const current = chapterTimes.get(s.chapterSerial!) || { name: s.chapterName || `Chapter ${s.chapterSerial}`, time: 0 };
+                chapterTimes.set(s.chapterSerial!, { name: current.name, time: current.time + s.duration });
+            });
+
+        return Array.from(chapterTimes.entries())
+            .map(([serial, data]) => ({ serial, ...data }))
+            .sort((a, b) => b.time - a.time)
+            .slice(0, 5);
+    };
+
+    // Toggle a subject's chapter graph
+    const toggleChapterGraph = (subject: Subject) => {
+        if (subject === 'custom' as any) return; // Custom doesn't have chapters
+        setOpenChapterGraphs(prev =>
+            prev.includes(subject)
+                ? prev.filter(s => s !== subject)
+                : [...prev, subject]
+        );
+    };
 
     if (isFullscreen) {
         return (
@@ -673,23 +749,21 @@ export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSessio
                                 </div>
                             )}
 
-                            {statsSubject !== 'all' && (
-                                <div className="stats-filter-group">
-                                    <label>Material</label>
-                                    <div className="custom-select">
-                                        <select
-                                            value={statsMaterial}
-                                            onChange={(e) => setStatsMaterial(e.target.value)}
-                                        >
-                                            <option value="all">All Materials</option>
-                                            {statsAvailableMaterials.map(mat => (
-                                                <option key={mat} value={mat}>{mat}</option>
-                                            ))}
-                                        </select>
-                                        <ChevronDown size={16} className="select-icon" />
-                                    </div>
+                            <div className="stats-filter-group">
+                                <label>Material</label>
+                                <div className="custom-select">
+                                    <select
+                                        value={statsMaterial}
+                                        onChange={(e) => setStatsMaterial(e.target.value)}
+                                    >
+                                        <option value="all">All Materials</option>
+                                        {statsAvailableMaterials.map(mat => (
+                                            <option key={mat} value={mat}>{mat}</option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown size={16} className="select-icon" />
                                 </div>
-                            )}
+                            </div>
                         </div>
 
                         <div className="stats-filtered-result">
@@ -732,13 +806,22 @@ export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSessio
                                             </div>
                                         </div>
                                         <div className="session-duration">{formatDuration(session.duration)}</div>
-                                        <button
-                                            className="session-delete-btn"
-                                            onClick={() => onDeleteSession(session.id)}
-                                            title="Delete session"
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
+                                        <div className="session-actions">
+                                            <button
+                                                className="session-edit-btn"
+                                                onClick={() => openEditModal(session)}
+                                                title="Edit session"
+                                            >
+                                                <Pencil size={16} />
+                                            </button>
+                                            <button
+                                                className="session-delete-btn"
+                                                onClick={() => onDeleteSession(session.id)}
+                                                title="Delete session"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
                                     </div>
                                 ))
                             )}
@@ -770,22 +853,121 @@ export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSessio
                                 { key: 'chemistry', label: 'Chemistry', time: subjectDistribution.chemistry },
                                 { key: 'maths', label: 'Maths', time: subjectDistribution.maths },
                                 { key: 'custom', label: 'Custom', time: subjectDistribution.custom },
-                            ].map(item => (
-                                <div key={item.key} className="distribution-bar-item">
-                                    <div className="distribution-bar-header">
-                                        <span className="distribution-bar-label">{item.label}</span>
-                                        <span className="distribution-bar-value">
-                                            {formatDuration(item.time)} ({totalTime > 0 ? Math.round((item.time / totalTime) * 100) : 0}%)
-                                        </span>
-                                    </div>
-                                    <div className="distribution-bar-track">
+                            ].map(item => {
+                                const isOpen = item.key !== 'custom' && openChapterGraphs.includes(item.key as Subject);
+                                const topChapters = isOpen ? getTopChaptersForSubject(item.key as Subject) : [];
+                                const maxTime = topChapters[0]?.time || 1;
+
+                                return (
+                                    <div key={item.key} className="distribution-subject-section">
                                         <div
-                                            className={`distribution-bar-fill ${item.key}`}
-                                            style={{ width: `${totalTime > 0 ? (item.time / totalTime) * 100 : 0}%` }}
-                                        />
+                                            className="distribution-bar-item"
+                                            onClick={() => item.key !== 'custom' && toggleChapterGraph(item.key as Subject)}
+                                            title={item.key !== 'custom' ? 'Click to see chapter breakdown' : ''}
+                                        >
+                                            <div className="distribution-bar-header">
+                                                <span className="distribution-bar-label">{item.label}</span>
+                                                <span className="distribution-bar-value">
+                                                    {formatDuration(item.time)} ({totalTime > 0 ? Math.round((item.time / totalTime) * 100) : 0}%)
+                                                </span>
+                                            </div>
+                                            <div className="distribution-bar-track">
+                                                <div
+                                                    className={`distribution-bar-fill ${item.key}`}
+                                                    style={{ width: `${totalTime > 0 ? (item.time / totalTime) * 100 : 0}%` }}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Chapter Graph - inline below subject */}
+                                        {isOpen && (
+                                            <div className="chapter-graph-inline">
+                                                <div className="chapter-graph-bars">
+                                                    {topChapters.length === 0 ? (
+                                                        <div className="empty-log" style={{ padding: '0.75rem', textAlign: 'center' }}>
+                                                            <span style={{ fontSize: '0.8rem' }}>No chapter data yet</span>
+                                                        </div>
+                                                    ) : (
+                                                        topChapters.map(chapter => (
+                                                            <div key={chapter.serial} className="chapter-bar-item">
+                                                                <div className="chapter-bar-header">
+                                                                    <span className="chapter-bar-name">{chapter.name}</span>
+                                                                    <span className="chapter-bar-time">{formatDuration(chapter.time)}</span>
+                                                                </div>
+                                                                <div className="chapter-bar-track">
+                                                                    <div
+                                                                        className={`chapter-bar-fill ${item.key}`}
+                                                                        style={{ width: `${(chapter.time / maxTime) * 100}%` }}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        ))
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Session Modal */}
+            {editingSession && (
+                <div className="distribution-modal-overlay" onClick={closeEditModal}>
+                    <div className="distribution-modal" onClick={e => e.stopPropagation()}>
+                        <div className="distribution-modal-header">
+                            <h3>Edit Session</h3>
+                            <button className="distribution-modal-close" onClick={closeEditModal}>
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div className="edit-session-form">
+                            <div className="edit-form-group">
+                                <label>Title</label>
+                                <input
+                                    type="text"
+                                    value={editTitle}
+                                    onChange={(e) => setEditTitle(e.target.value)}
+                                    placeholder="Session title..."
+                                    className="edit-input"
+                                />
+                            </div>
+
+                            <div className="edit-form-group">
+                                <label>Subject</label>
+                                <div className="custom-select">
+                                    <select
+                                        value={editSubject}
+                                        onChange={(e) => setEditSubject(e.target.value as Subject | '')}
+                                    >
+                                        <option value="">None</option>
+                                        <option value="physics">Physics</option>
+                                        <option value="chemistry">Chemistry</option>
+                                        <option value="maths">Maths</option>
+                                    </select>
+                                    <ChevronDown size={16} className="select-icon" />
                                 </div>
-                            ))}
+                            </div>
+
+                            <div className="edit-form-group">
+                                <label>Material</label>
+                                <input
+                                    type="text"
+                                    value={editMaterial}
+                                    onChange={(e) => setEditMaterial(e.target.value)}
+                                    placeholder="Material name..."
+                                    className="edit-input"
+                                />
+                            </div>
+
+                            <div className="edit-form-actions">
+                                <button className="edit-cancel-btn" onClick={closeEditModal}>Cancel</button>
+                                <button className="edit-save-btn" onClick={saveEditedSession}>Save Changes</button>
+                            </div>
                         </div>
                     </div>
                 </div>

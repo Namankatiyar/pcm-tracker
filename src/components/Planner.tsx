@@ -169,6 +169,32 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
         }
     };
 
+    // Calculate study time for the current view period
+    const getStudyTimeForPeriod = (): string => {
+        let startDate: Date, endDate: Date;
+
+        if (viewMode === 'weekly') {
+            startDate = startOfWeek;
+            endDate = new Date(startOfWeek);
+            endDate.setDate(endDate.getDate() + 6);
+        } else {
+            startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+            endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+        }
+
+        const startStr = formatDateLocal(startDate);
+        const endStr = formatDateLocal(endDate);
+
+        const totalSeconds = sessions
+            .filter(s => s.startTime.slice(0, 10) >= startStr && s.startTime.slice(0, 10) <= endStr)
+            .reduce((acc, s) => acc + s.duration, 0);
+
+        if (totalSeconds === 0) return '0h';
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+    };
+
     return (
         <div className="planner-page">
             <div className="planner-header">
@@ -185,6 +211,11 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
                     >
                         Monthly
                     </button>
+                </div>
+
+                <div className="study-time-display">
+                    <Clock size={16} />
+                    <span>{getStudyTimeForPeriod()}</span>
                 </div>
 
                 <div className="date-controls">
@@ -284,20 +315,40 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
                 </div>
             ) : (
                 <div className="weekly-grid">
-                    {weekDays.map(day => (
-                        <DayColumn
-                            key={day.toISOString()}
-                            date={day}
-                            tasks={getTasksForDate(formatDateLocal(day))}
-                            onAddTask={() => handleAddTaskClick(formatDateLocal(day))}
-                            onEditTask={handleEditClick}
-                            onToggleTask={onToggleTask}
-                            onDeleteTask={onDeleteTask}
-                            onMoveTask={handleMoveTask}
-                            isExamDay={formatDateLocal(day) === examDate}
-                            isPastDay={day.setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0)}
-                        />
-                    ))}
+                    {/* Reorder days: today and remaining days first, then past days */}
+                    {(() => {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+
+                        const remainingDays = weekDays.filter(day => {
+                            const dayDate = new Date(day);
+                            dayDate.setHours(0, 0, 0, 0);
+                            return dayDate >= today;
+                        });
+
+                        const pastDays = weekDays.filter(day => {
+                            const dayDate = new Date(day);
+                            dayDate.setHours(0, 0, 0, 0);
+                            return dayDate < today;
+                        });
+
+                        const reorderedDays = [...remainingDays, ...pastDays];
+
+                        return reorderedDays.map(day => (
+                            <DayColumn
+                                key={day.toISOString()}
+                                date={day}
+                                tasks={getTasksForDate(formatDateLocal(day))}
+                                onAddTask={() => handleAddTaskClick(formatDateLocal(day))}
+                                onEditTask={handleEditClick}
+                                onToggleTask={onToggleTask}
+                                onDeleteTask={onDeleteTask}
+                                onMoveTask={handleMoveTask}
+                                isExamDay={formatDateLocal(day) === examDate}
+                                isPastDay={day.setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0)}
+                            />
+                        ));
+                    })()}
                 </div>
             )}
 
@@ -348,6 +399,18 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
                     color: var(--accent-text);
                     border-color: var(--accent-border);
                     box-shadow: var(--shadow-md);
+                }
+                .study-time-display {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    padding: 0.5rem 1rem;
+                    background: var(--accent-light);
+                    border: 1px solid var(--accent);
+                    border-radius: 8px;
+                    color: var(--accent);
+                    font-weight: 700;
+                    font-size: 0.95rem;
                 }
                 .date-controls {
                     display: flex;
@@ -843,13 +906,15 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
 
                 .cell-center {
                     position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
                     z-index: 2;
                     display: flex;
                     align-items: center;
                     justify-content: center;
+                    pointer-events: none;
                 }
 
                 .study-hours {
@@ -858,6 +923,9 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
                     color: #ffffff;
                     text-shadow: 0 0 12px rgba(255, 255, 255, 0.6), 0 2px 4px rgba(0,0,0,0.3);
                     letter-spacing: -0.5px;
+                    white-space: nowrap;
+                    display: block;
+                    text-align: center;
                 }
 
                 .cell-content {
@@ -975,9 +1043,11 @@ function DayColumn({ date, tasks, onAddTask, onEditTask, onToggleTask, onDeleteT
                     <span className="day-name">{date.toLocaleDateString('en-US', { weekday: 'short' })}</span>
                     <span className="day-number">{date.getDate()}</span>
                 </div>
-                <button className="header-add-btn" onClick={onAddTask} title="Add task">
-                    <Plus size={18} />
-                </button>
+                {!isPastDay && (
+                    <button className="header-add-btn" onClick={onAddTask} title="Add task">
+                        <Plus size={18} />
+                    </button>
+                )}
             </div>
 
             <div className="tasks-list">
@@ -1052,18 +1122,22 @@ function DayColumn({ date, tasks, onAddTask, onEditTask, onToggleTask, onDeleteT
                                 </div>
                             </div>
                         ))}
-                        <div className="inline-add-task" onClick={onAddTask}>
-                            <Plus size={14} />
-                            <span>Add Task</span>
-                        </div>
+                        {!isPastDay && (
+                            <div className="inline-add-task" onClick={onAddTask}>
+                                <Plus size={14} />
+                                <span>Add Task</span>
+                            </div>
+                        )}
                     </>
                 ) : (
-                    <div className="skeleton-task" onClick={onAddTask}>
-                        <div className="skeleton-overlay">
-                            <Plus size={20} />
-                            <span>Plan this day</span>
+                    !isPastDay && (
+                        <div className="skeleton-task" onClick={onAddTask}>
+                            <div className="skeleton-overlay">
+                                <Plus size={20} />
+                                <span>Plan this day</span>
+                            </div>
                         </div>
-                    </div>
+                    )
                 )}
             </div>
         </div>

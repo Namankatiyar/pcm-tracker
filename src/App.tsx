@@ -394,6 +394,10 @@ function App() {
         setStudySessions(prev => prev.filter(s => s.id !== sessionId));
     };
 
+    const handleEditStudySession = (session: StudySession) => {
+        setStudySessions(prev => prev.map(s => s.id === session.id ? session : s));
+    };
+
     const renderContent = () => {
         if (currentView === 'dashboard') {
             return (
@@ -410,6 +414,7 @@ function App() {
                     examDate={examDate}
                     onExamDateChange={setExamDate}
                     onQuickAdd={handleQuickAddTask}
+                    studySessions={studySessions}
                 />
             );
         }
@@ -438,6 +443,7 @@ function App() {
                     sessions={studySessions}
                     onAddSession={handleAddStudySession}
                     onDeleteSession={handleDeleteStudySession}
+                    onEditSession={handleEditStudySession}
                     plannerTasks={plannerTasks}
                 />
             );

@@ -172,7 +172,7 @@ export function SubjectPage({
         e.dataTransfer.effectAllowed = "move";
     };
 
-    const handleDragEnterMaterial = (e: React.DragEvent<HTMLTableHeaderCellElement>, index: number) => {
+    const handleDragEnterMaterial = (_e: React.DragEvent<HTMLTableHeaderCellElement>, index: number) => {
         dragOverMaterial.current = index;
         if (!onReorderMaterials || !data || dragMaterial.current === null) return;
 

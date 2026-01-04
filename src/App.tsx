@@ -37,6 +37,11 @@ function App() {
         chemistry: [],
         maths: []
     });
+    const [materialOrder, setMaterialOrder] = useLocalStorage<Record<Subject, string[]>>('jee-tracker-material-order', {
+        physics: [],
+        chemistry: [],
+        maths: []
+    });
     const [studySessions, setStudySessions] = useLocalStorage<StudySession[]>('jee-tracker-study-sessions', []);
 
     const [plannerDateToOpen, setPlannerDateToOpen] = useState<string | null>(null);
@@ -143,21 +148,32 @@ function App() {
             const custom = customColumns[subject] || [];
             const excluded = excludedColumns[subject] || [];
 
-            // Prevent duplicates and filter excluded
+            // Prevent duplicates and get all candidates
             const uniqueCustom = custom.filter(c => !data.materialNames.includes(c));
-            const allMaterials = [...data.materialNames, ...uniqueCustom].filter(m => !excluded.includes(m));
+            let activeMaterials = [...data.materialNames, ...uniqueCustom].filter(m => !excluded.includes(m));
+
+            const order = materialOrder[subject] || [];
+
+            // Apply ordering if defined
+            if (order.length > 0) {
+                // Get ordered active items
+                const orderedActive = order.filter(m => activeMaterials.includes(m));
+                // Get any new items not in order list (append to end)
+                const newItems = activeMaterials.filter(m => !orderedActive.includes(m));
+                activeMaterials = [...orderedActive, ...newItems];
+            }
 
             merged[subject] = {
                 ...data,
-                materialNames: allMaterials,
+                materialNames: activeMaterials,
                 chapters: data.chapters.map(c => ({
                     ...c,
-                    materials: allMaterials
+                    materials: activeMaterials
                 }))
             };
         });
         return merged;
-    }, [subjectData, customColumns, excludedColumns]);
+    }, [subjectData, customColumns, excludedColumns, materialOrder]);
 
     const { physicsProgress, chemistryProgress, mathsProgress, overallProgress, calculateSubjectProgress } = useProgress(progress, mergedSubjectData);
 
@@ -248,6 +264,13 @@ function App() {
             }));
         }
     }, [customColumns, setCustomColumns, setExcludedColumns]);
+
+    const handleReorderMaterials = useCallback((subject: Subject, materials: string[]) => {
+        setMaterialOrder(prev => ({
+            ...prev,
+            [subject]: materials
+        }));
+    }, [setMaterialOrder]);
 
     // Chapter Management Handlers
     const handleAddChapter = useCallback((subject: Subject, name: string) => {
@@ -464,6 +487,7 @@ function App() {
                 onRemoveChapter={(serial) => handleRemoveChapter(subject, serial)}
                 onRenameChapter={(serial, name) => handleRenameChapter(subject, serial, name)}
                 onReorderChapters={(chapters) => handleReorderChapters(subject, chapters)}
+                onReorderMaterials={(materials) => handleReorderMaterials(subject, materials)}
             />
         );
     };

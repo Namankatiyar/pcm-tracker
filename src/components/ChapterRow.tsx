@@ -82,7 +82,7 @@ export function ChapterRow({
                     </>
                 )}
             </td>
-            {!isEditing && materialNames.map((material) => (
+            {materialNames.map((material) => (
                 <td key={material} className="material-cell">
                     <label className="checkbox-container">
                         <input

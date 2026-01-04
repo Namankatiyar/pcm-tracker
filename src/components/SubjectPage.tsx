@@ -5,7 +5,8 @@ import { ProgressBar } from './ProgressBar';
 import { ConfirmationModal } from './ConfirmationModal';
 import { InputModal } from './InputModal';
 import { triggerConfetti } from '../utils/confetti';
-import { Atom, FlaskConical, Calculator, Plus, X as XIcon, Pencil, Check } from 'lucide-react';
+import { Atom, FlaskConical, Calculator, Plus, X as XIcon, Pencil, Check, Filter } from 'lucide-react';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 
 interface SubjectPageProps {
     subject: Subject;
@@ -20,6 +21,7 @@ interface SubjectPageProps {
     onRemoveChapter?: (serial: number) => void;
     onRenameChapter?: (serial: number, name: string) => void;
     onReorderChapters?: (chapters: Chapter[]) => void;
+    onReorderMaterials?: (materials: string[]) => void;
 }
 
 const subjectConfig: Record<Subject, { label: string; icon: React.ReactNode; color: string }> = {
@@ -40,10 +42,14 @@ export function SubjectPage({
     onAddChapter,
     onRemoveChapter,
     onRenameChapter,
-    onReorderChapters
+    onReorderChapters,
+    onReorderMaterials
 }: SubjectPageProps) {
     const config = subjectConfig[subject];
     const [isEditing, setIsEditing] = useState(false);
+
+    // Priority Filter State - Persistent per subject
+    const [priorityFilter, setPriorityFilter] = useLocalStorage<Priority | 'all'>(`jee-tracker-filter-${subject}`, 'all');
 
     // Material Modals
     const [deleteMaterialState, setDeleteMaterialState] = useState<{ isOpen: boolean; material: string | null }>({
@@ -60,9 +66,13 @@ export function SubjectPage({
         name: ''
     });
 
-    // Drag and Drop
+    // Drag and Drop (Rows)
     const dragItem = useRef<number | null>(null);
     const dragOverItem = useRef<number | null>(null);
+
+    // Drag and Drop (Materials/Columns)
+    const dragMaterial = useRef<number | null>(null);
+    const dragOverMaterial = useRef<number | null>(null);
 
     if (!data) {
         return (
@@ -133,6 +143,9 @@ export function SubjectPage({
     const handleDragEnter = (_e: React.DragEvent<HTMLTableRowElement>, index: number) => {
         dragOverItem.current = index;
 
+        // Disable reordering if filtered
+        if (priorityFilter !== 'all') return;
+
         // Optional: Implement live reordering here for smoother feel
         // For now, we will stick to reorder on drop or we can try live swap
         if (!onReorderChapters || !data) return;
@@ -151,6 +164,32 @@ export function SubjectPage({
     const handleDragEnd = () => {
         dragItem.current = null;
         dragOverItem.current = null;
+    };
+
+    // Material Column Drag Handlers
+    const handleDragStartMaterial = (e: React.DragEvent<HTMLTableHeaderCellElement>, index: number) => {
+        dragMaterial.current = index;
+        e.dataTransfer.effectAllowed = "move";
+    };
+
+    const handleDragEnterMaterial = (_e: React.DragEvent<HTMLTableHeaderCellElement>, index: number) => {
+        dragOverMaterial.current = index;
+        if (!onReorderMaterials || !data || dragMaterial.current === null) return;
+
+        if (dragMaterial.current !== index) {
+            const newMaterials = [...data.materialNames];
+            const draggedItemContent = newMaterials[dragMaterial.current];
+            newMaterials.splice(dragMaterial.current, 1);
+            newMaterials.splice(index, 0, draggedItemContent);
+
+            onReorderMaterials(newMaterials);
+            dragMaterial.current = index;
+        }
+    };
+
+    const handleDragEndMaterial = () => {
+        dragMaterial.current = null;
+        dragOverMaterial.current = null;
     };
 
     return (
@@ -215,11 +254,26 @@ export function SubjectPage({
                         <tr>
                             <th className="serial-header">#</th>
                             <th className="chapter-header">Chapter</th>
-                            {!isEditing && data.materialNames.map((material) => (
-                                <th key={material} className="material-header">
-                                    <div className="material-header-content">
+                            {data.materialNames.map((material, mIndex) => (
+                                <th
+                                    key={material}
+                                    className="material-header"
+                                    draggable={isEditing}
+                                    onDragStart={(e) => handleDragStartMaterial(e, mIndex)}
+                                    onDragEnter={(e) => handleDragEnterMaterial(e, mIndex)}
+                                    onDragEnd={handleDragEndMaterial}
+                                    onDragOver={(e) => e.preventDefault()}
+                                    style={{
+                                        cursor: isEditing ? 'grab' : 'default',
+                                        background: isEditing ? 'var(--bg-tertiary)' : undefined
+                                    }}
+                                >
+                                    <div
+                                        className="material-header-content"
+                                    >
                                         <span>{material}</span>
-                                        {onRemoveMaterial && (
+
+                                        {!isEditing && onRemoveMaterial && (
                                             <button
                                                 className="remove-material-btn"
                                                 onClick={() => setDeleteMaterialState({ isOpen: true, material })}
@@ -232,12 +286,47 @@ export function SubjectPage({
                                 </th>
                             ))}
                             <th className="priority-header">
-                                {isEditing ? 'Actions' : 'Priority'}
+                                {isEditing ? 'Actions' : (
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                                        <span>Priority</span>
+                                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                                            <Filter
+                                                size={14}
+                                                style={{
+                                                    color: priorityFilter !== 'all' ? 'var(--accent)' : 'var(--text-muted)'
+                                                }}
+                                            />
+                                            <select
+                                                value={priorityFilter}
+                                                onChange={(e) => setPriorityFilter(e.target.value as Priority | 'all')}
+                                                style={{
+                                                    position: 'absolute',
+                                                    inset: 0,
+                                                    opacity: 0,
+                                                    cursor: 'pointer',
+                                                    width: '100%',
+                                                    height: '100%'
+                                                }}
+                                                title="Filter by priority"
+                                            >
+                                                <option value="all">All</option>
+                                                <option value="high">High</option>
+                                                <option value="medium">Medium</option>
+                                                <option value="low">Low</option>
+                                                <option value="none">None</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                )}
                             </th>
                         </tr>
                     </thead>
                     <tbody>
-                        {data.chapters.map((chapter, index) => (
+                        {data.chapters.filter(chapter => {
+                            if (priorityFilter === 'all') return true;
+                            const chapPriority = progress[chapter.serial]?.priority || 'none';
+                            return chapPriority === priorityFilter;
+                        }).map((chapter, index) => (
                             <ChapterRow
                                 key={chapter.serial}
                                 chapter={chapter}
@@ -327,6 +416,6 @@ export function SubjectPage({
                 onConfirm={handleAddChapter}
                 onCancel={() => setIsAddChapterModalOpen(false)}
             />
-        </div>
+        </div >
     );
 }

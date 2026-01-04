@@ -3251,3 +3251,32 @@ td.material-cell {
     font-size: 1rem;
   }
 }
+/* Button styles */
+.icon-btn-small {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.icon-btn-small:hover:not(:disabled) {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.icon-btn-small:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+

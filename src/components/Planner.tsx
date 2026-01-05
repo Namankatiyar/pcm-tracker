@@ -363,14 +363,14 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
 
             <style>{`
                 .planner-page {
-                    padding: 0 2rem 2rem 2rem;
-                    max-width: 100%;
+                    padding: 2.5rem 2rem 2rem 2rem;
+                    width: 100%;
+                    max-width: var(--content-max-width);
                     box-sizing: border-box;
                     margin: 0 auto;
                 }
                 .planner-header {
-                    max-width: 1400px; /* Wider max-width for header */
-                    margin: 0 auto 2rem auto;
+                    margin-bottom: 2rem;
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
@@ -437,7 +437,8 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
                     color: var(--accent);
                 }
                 .weekly-grid {
-                    max-width: 1400px; /* Wider max-width for grid */
+                    width: 100%;
+                    max-width: var(--content-max-width);
                     margin: 0 auto;
                     display: grid;
                     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -702,7 +703,8 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
 
                 /* ===== Monthly Calendar Styles ===== */
                 .monthly-calendar {
-                    max-width: 1400px;
+                    width: 100%;
+                    max-width: var(--content-max-width);
                     margin: 0 auto;
                     background: var(--bg-secondary);
                     border-radius: 12px;

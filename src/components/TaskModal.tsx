@@ -221,14 +221,15 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                                             <label>Chapter</label>
                                             {selectedChapterSerial === '' ? (
                                                 <div className="chapter-picker">
-                                                    <div className="chapter-search">
-                                                        <Search size={16} className="search-icon" />
+                                                    <div className="chapter-search-box">
+                                                        <Search size={18} className="search-icon" />
                                                         <input
                                                             type="text"
                                                             placeholder="Search chapters..."
                                                             value={chapterSearch}
                                                             onChange={e => setChapterSearch(e.target.value)}
                                                             autoFocus
+                                                            className="search-input"
                                                         />
                                                     </div>
                                                     <div className="chapter-list">
@@ -238,7 +239,7 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                                                                 className="chapter-item"
                                                                 onClick={() => setSelectedChapterSerial(c.serial)}
                                                             >
-                                                                <span>{c.serial}. {c.name}</span>
+                                                                <span><span className="bullet-icon">•</span> {c.name}</span>
                                                                 <ChevronRight size={16} className="chevron" />
                                                             </button>
                                                         ))}
@@ -524,79 +525,91 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                 }
 
                 .chapter-picker {
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 12px;
+                    border: 1px solid var(--glass-border);
+                    border-radius: 16px;
                     overflow: hidden;
-                    background: rgba(255, 255, 255, 0.03);
+                    background: rgba(0, 0, 0, 0.1);
                     backdrop-filter: blur(8px);
                     display: flex;
                     flex-direction: column;
-                    max-height: 250px;
+                    max-height: 280px;
                 }
-                .chapter-search {
+                .chapter-search-box {
                     display: flex;
                     align-items: center;
-                    padding: 0.75rem;
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                    background: rgba(255, 255, 255, 0.05);
+                    padding: 0 1.25rem;
+                    height: 56px;
+                    background: rgba(0, 0, 0, 0.35) !important;
+                    border-bottom: 1px solid var(--glass-border);
+                    backdrop-filter: blur(6px);
                 }
                 .search-icon {
-                    color: var(--text-muted);
-                    margin-right: 0.5rem;
+                    color: var(--text-muted) !important;
+                    margin-right: 0.75rem;
                 }
-                .chapter-search input {
+                .search-input {
                     border: none;
                     background: transparent;
                     width: 100%;
-                    outline: none;
+                    outline: none !important;
+                    box-shadow: none !important;
                     color: var(--text-primary);
-                    font-size: 0.95rem;
+                    font-size: 1rem;
+                    padding: 0.5rem 0;
+                    caret-color: var(--text-primary);
                 }
                 .chapter-list {
                     overflow-y: auto;
                     flex: 1;
+                    padding: 4px;
                 }
                 .chapter-item {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
                     width: 100%;
-                    padding: 0.75rem 1rem;
+                    padding: 0.85rem 1rem;
                     border: none;
                     background: transparent;
                     color: var(--text-primary);
                     text-align: left;
                     cursor: pointer;
-                    border-bottom: 1px solid var(--border);
-                    transition: background 0.15s;
-                }
-                .chapter-item:last-child {
-                    border-bottom: none;
+                    border-radius: 10px;
+                    transition: all 0.2s;
+                    margin-bottom: 2px;
                 }
                 .chapter-item:hover {
                     background: var(--accent-light);
                     color: var(--accent);
+                    transform: translateX(4px);
+                }
+                .bullet-icon {
+                    color: var(--accent);
+                    margin-right: 6px;
+                    font-size: 1.2rem;
+                    vertical-align: middle;
                 }
                 .chevron {
-                    opacity: 0.5;
+                    opacity: 0.3;
                 }
                 .no-chapters {
                     padding: 2rem;
                     text-align: center;
                     color: var(--text-muted);
-                    font-size: 0.9rem;
+                    font-size: 0.95rem;
                 }
 
                 .selected-chapter-display {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    padding: 1rem;
+                    padding: 1rem 1.25rem;
                     background: var(--bg-tertiary);
-                    border: 1px solid var(--accent);
-                    border-radius: 8px;
-                    color: var(--accent);
-                    font-weight: 500;
+                    border: 1px solid var(--border);
+                    border-radius: 12px;
+                    color: var(--text-primary);
+                    font-weight: 600;
+                    box-shadow: var(--shadow-sm);
                 }
                 .change-btn {
                     font-size: 0.8rem;
@@ -807,6 +820,6 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                     }
                 }
             `}</style>
-        </div>
+        </div >
     );
 }

@@ -973,6 +973,89 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
                     font-size: 0.75rem;
                     z-index: 3;
                 }
+                /* Responsive Mobile Styles */
+                @media (max-width: 768px) {
+                    .planner-page {
+                        padding: 0 0.5rem 1rem 0.5rem;
+                    }
+                    
+                    .planner-header {
+                        flex-direction: column;
+                        gap: 1rem;
+                        align-items: stretch;
+                        margin-bottom: 1.5rem;
+                    }
+                    
+                    .view-toggles {
+                        order: 2;
+                        width: 100%;
+                    }
+                    
+                    .view-btn {
+                        flex: 1;
+                        padding: 10px;
+                        font-size: 0.9rem;
+                    }
+                    
+                    .study-time-display {
+                        order: 1;
+                        align-self: center;
+                    }
+                    
+                    .date-controls {
+                        order: 3;
+                        justify-content: space-between;
+                        width: 100%;
+                        background: var(--bg-secondary);
+                        padding: 0.5rem;
+                        border-radius: 8px;
+                        border: 1px solid var(--border);
+                    }
+                    
+                    .monthly-calendar {
+                        padding: 0.5rem;
+                    }
+                    
+                    .month-header-row {
+                        gap: 2px;
+                        padding: 4px;
+                    }
+                    
+                    .month-day-header {
+                        font-size: 0.65rem;
+                        padding: 0.2rem;
+                    }
+                    
+                    .month-grid {
+                        gap: 2px;
+                    }
+                    
+                    .month-day-cell {
+                        border-radius: 4px;
+                        min-height: 50px;
+                    }
+                    
+                    .month-day-number {
+                        width: 20px;
+                        height: 20px;
+                        font-size: 0.75rem;
+                    }
+                    
+                    .exam-badge {
+                        font-size: 0.8rem;
+                        right: 1px;
+                        bottom: 1px;
+                    }
+                    
+                    .weekly-grid {
+                        grid-template-columns: 1fr;
+                        gap: 1rem;
+                    }
+                    
+                    .day-column {
+                        min-height: auto;
+                    }
+                }
             `}</style>
         </div>
     );

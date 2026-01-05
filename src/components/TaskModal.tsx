@@ -788,6 +788,24 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                     color: var(--accent);
                     border-color: var(--accent);
                 }
+
+                @media (max-width: 480px) {
+                    .task-type-selection {
+                        grid-template-columns: 1fr;
+                        gap: 1rem;
+                        padding: 1rem 0;
+                    }
+                    .type-btn {
+                        padding: 1.5rem;
+                        flex-direction: row;
+                    }
+                    .modal-body-scrollable {
+                        padding: 1rem;
+                    }
+                    .modal-footer {
+                        padding: 1rem;
+                    }
+                }
             `}</style>
         </div>
     );

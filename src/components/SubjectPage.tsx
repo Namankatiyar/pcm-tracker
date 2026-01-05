@@ -198,7 +198,7 @@ export function SubjectPage({
                 <div className="subject-title">
                     <span className="subject-icon-large">{config.icon}</span>
                     <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <div className="subject-title-row" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                             <h1>{config.label}</h1>
                             {onAddChapter && (
                                 <button

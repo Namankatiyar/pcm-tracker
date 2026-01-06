@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Plus, Check, Trash2, Calendar as CalendarIcon, Clock, Pencil, ClockAlert, Hourglass } from 'lucide-react';
 import { PlannerTask, Subject, SubjectData, StudySession } from '../types';
 import { TaskModal } from './TaskModal';
@@ -453,6 +453,7 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
                     flex-direction: column;
                     box-shadow: var(--shadow-lg), var(--shadow-glow);
                     border: 1px solid var(--border);
+                    transition: all 0.2s ease;
                 }
                 .day-header {
                     display: flex;
@@ -489,9 +490,17 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
                     border-color: var(--accent-border);
                 }
                 .day-column.drag-over {
-                    border-color: var(--accent);
-                    background: var(--accent-light);
-                    box-shadow: 0 0 0 2px var(--accent-light);
+                    border-color: var(--accent) !important;
+                    background: color-mix(in srgb, var(--accent), transparent 80%) !important;
+                    box-shadow: 0 0 0 4px var(--accent), var(--shadow-glow) !important;
+                    transform: translateY(-4px);
+                    z-index: 10;
+                }
+                .day-column.drag-over.past-day {
+                    border-color: var(--border) !important;
+                    background: var(--bg-tertiary) !important;
+                    box-shadow: none !important;
+                    transform: none;
                 }
                 .header-add-btn {
                     background: transparent;
@@ -1097,19 +1106,37 @@ function DayColumn({ date, tasks, onAddTask, onEditTask, onToggleTask, onDeleteT
         e.dataTransfer.effectAllowed = 'move';
     };
 
+    const dragCounter = useRef(0);
+
+    const handleDragEnter = (e: React.DragEvent) => {
+        if (isPastDay) return;
+        e.preventDefault();
+        dragCounter.current++;
+        if (dragCounter.current === 1) {
+            setIsDragOver(true);
+        }
+    };
+
     const handleDragOver = (e: React.DragEvent) => {
+        if (isPastDay) return;
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
-        setIsDragOver(true);
     };
 
     const handleDragLeave = () => {
-        setIsDragOver(false);
+        if (isPastDay) return;
+        dragCounter.current--;
+        if (dragCounter.current === 0) {
+            setIsDragOver(false);
+        }
     };
 
     const handleDrop = (e: React.DragEvent) => {
         e.preventDefault();
+        dragCounter.current = 0;
         setIsDragOver(false);
+        if (isPastDay) return;
+
         const taskId = e.dataTransfer.getData('text/plain');
         if (taskId) {
             onMoveTask(taskId, formatDateLocal(date));
@@ -1119,6 +1146,7 @@ function DayColumn({ date, tasks, onAddTask, onEditTask, onToggleTask, onDeleteT
     return (
         <div
             className={`day-column ${isToday ? 'today' : ''} ${isExamDay ? 'exam-day-col' : ''} ${isDragOver ? 'drag-over' : ''} ${isPastDay ? 'past-day' : ''}`}
+            onDragEnter={handleDragEnter}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}

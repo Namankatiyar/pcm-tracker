@@ -310,6 +310,21 @@ body {
   background-clip: text;
 }
 
+@media (max-width: 410px) {
+  .logo-text {
+    font-size: 0;
+  }
+
+  .logo-text::after {
+    content: "PCM";
+    font-size: 1.25rem;
+    background: linear-gradient(135deg, var(--accent), #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
 .nav {
   display: flex;
   gap: 0.5rem;

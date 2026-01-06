@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Subject, SubjectData, SubjectProgress, Priority, Chapter } from '../types';
 import { ChapterRow } from './ChapterRow';
 import { ProgressBar } from './ProgressBar';
@@ -6,7 +6,7 @@ import { ConfirmationModal } from './ConfirmationModal';
 import { InputModal } from './InputModal';
 import { CustomSelect } from './CustomSelect';
 import { triggerConfetti } from '../utils/confetti';
-import { Atom, FlaskConical, Calculator, Plus, X as XIcon, Pencil, Check } from 'lucide-react';
+import { Atom, FlaskConical, Calculator, Plus, X as XIcon, Pencil, Check, Filter } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
 interface SubjectPageProps {
@@ -51,6 +51,8 @@ export function SubjectPage({
 
     // Priority Filter State - Persistent per subject
     const [priorityFilter, setPriorityFilter] = useLocalStorage<Priority | 'all'>(`jee-tracker-filter-${subject}`, 'all');
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const filterRef = useRef<HTMLDivElement>(null);
 
     // Material Modals
     const [deleteMaterialState, setDeleteMaterialState] = useState<{ isOpen: boolean; material: string | null }>({
@@ -74,6 +76,18 @@ export function SubjectPage({
     // Drag and Drop (Materials/Columns)
     const dragMaterial = useRef<number | null>(null);
     const dragOverMaterial = useRef<number | null>(null);
+
+    // Close filter dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+                setIsFilterOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     if (!data) {
         return (
@@ -290,19 +304,95 @@ export function SubjectPage({
                                 {isEditing ? 'Actions' : (
                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                                         <span>Priority</span>
-                                        <div style={{ width: '100px' }}>
-                                            <CustomSelect
-                                                value={priorityFilter}
-                                                onChange={(val) => setPriorityFilter(val as Priority | 'all')}
-                                                options={[
-                                                    { value: 'all', label: 'All' },
-                                                    { value: 'high', label: 'High' },
-                                                    { value: 'medium', label: 'Medium' },
-                                                    { value: 'low', label: 'Low' },
-                                                    { value: 'none', label: 'None' }
-                                                ]}
-                                                placeholder="All"
-                                            />
+                                        <div ref={filterRef} style={{ position: 'relative' }}>
+                                            <button
+                                                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                                                className="filter-icon-btn"
+                                                style={{
+                                                    background: 'transparent',
+                                                    border: 'none',
+                                                    cursor: 'pointer',
+                                                    padding: '4px',
+                                                    borderRadius: '4px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    color: 'var(--accent)',
+                                                    transition: 'all 0.2s',
+                                                    position: 'relative'
+                                                }}
+                                                title={`Filter: ${priorityFilter === 'all' ? 'All' : priorityFilter.charAt(0).toUpperCase() + priorityFilter.slice(1)}`}
+                                            >
+                                                <Filter size={16} />
+                                                {priorityFilter !== 'all' && (
+                                                    <span style={{
+                                                        position: 'absolute',
+                                                        top: 0,
+                                                        right: 0,
+                                                        width: '6px',
+                                                        height: '6px',
+                                                        borderRadius: '50%',
+                                                        background: 'var(--accent)'
+                                                    }} />
+                                                )}
+                                            </button>
+                                            {isFilterOpen && (
+                                                <div
+                                                    className="filter-dropdown"
+                                                    style={{
+                                                        position: 'absolute',
+                                                        top: 'calc(100% + 4px)',
+                                                        right: 0,
+                                                        background: 'var(--bg-secondary)',
+                                                        backdropFilter: 'blur(16px)',
+                                                        WebkitBackdropFilter: 'blur(16px)',
+                                                        border: '1px solid var(--border)',
+                                                        borderRadius: '8px',
+                                                        boxShadow: 'var(--shadow-lg)',
+                                                        zIndex: 100,
+                                                        minWidth: '100px',
+                                                        padding: '4px',
+                                                        animation: 'fadeIn 0.15s ease'
+                                                    }}
+                                                >
+                                                    {[
+                                                        { value: 'all', label: 'All', color: 'var(--text-muted)' },
+                                                        { value: 'high', label: 'High', color: 'var(--priority-high)' },
+                                                        { value: 'medium', label: 'Medium', color: 'var(--priority-medium)' },
+                                                        { value: 'low', label: 'Low', color: 'var(--priority-low)' },
+                                                        { value: 'none', label: 'None', color: 'var(--text-muted)' }
+                                                    ].map((opt) => (
+                                                        <button
+                                                            key={opt.value}
+                                                            onClick={() => {
+                                                                setPriorityFilter(opt.value as Priority | 'all');
+                                                                setIsFilterOpen(false);
+                                                            }}
+                                                            style={{
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'space-between',
+                                                                width: '100%',
+                                                                padding: '6px 10px',
+                                                                background: priorityFilter === opt.value ? 'var(--accent-light)' : 'transparent',
+                                                                border: 'none',
+                                                                borderRadius: '6px',
+                                                                cursor: 'pointer',
+                                                                color: opt.color,
+                                                                fontSize: '0.8rem',
+                                                                fontWeight: priorityFilter === opt.value ? 600 : 500,
+                                                                transition: 'background 0.15s',
+                                                                textAlign: 'left'
+                                                            }}
+                                                            onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-tertiary)'}
+                                                            onMouseLeave={(e) => e.currentTarget.style.background = priorityFilter === opt.value ? 'var(--accent-light)' : 'transparent'}
+                                                        >
+                                                            <span>{opt.label}</span>
+                                                            {priorityFilter === opt.value && <span style={{ color: 'var(--accent)' }}>✓</span>}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 )}

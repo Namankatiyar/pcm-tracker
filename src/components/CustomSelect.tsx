@@ -166,12 +166,12 @@ export function CustomSelect({
                     backdrop-filter: blur(40px);
                     -webkit-backdrop-filter: blur(40px);
                     border: 1px solid var(--border);
-                    border-radius: 8px;
+                    border-radius: 6px;
                     box-shadow: var(--shadow-lg);
                     z-index: 9999;
-                    max-height: 250px;
+                    max-height: 200px;
                     overflow-y: auto;
-                    padding: 4px;
+                    padding: 3px;
                     animation: fadeIn 0.15s ease;
                 }
 
@@ -180,15 +180,15 @@ export function CustomSelect({
                 }
 
                 .custom-select-option {
-                    padding: 0.5rem 0.75rem;
+                    padding: 0.35rem 0.6rem;
                     cursor: pointer;
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
-                    border-radius: 6px;
+                    border-radius: 5px;
                     transition: background 0.15s;
                     color: var(--text-primary);
-                    font-size: 0.9rem;
+                    font-size: 0.8rem;
                 }
 
                 .custom-select-option:hover {

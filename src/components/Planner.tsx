@@ -931,12 +931,16 @@ export function Planner({ tasks, onAddTask, onEditTask, onToggleTask, onDeleteTa
                 .study-hours {
                     font-size: 1.4rem;
                     font-weight: 700;
-                    color: #ffffff;
-                    text-shadow: 0 0 12px rgba(255, 255, 255, 0.6), 0 2px 4px rgba(0,0,0,0.3);
+                    color: var(--text-primary);
                     letter-spacing: -0.5px;
                     white-space: nowrap;
                     display: block;
                     text-align: center;
+                }
+
+                [data-theme="dark"] .study-hours {
+                    color: #ffffff;
+                    text-shadow: 0 0 12px rgba(255, 255, 255, 0.6), 0 2px 4px rgba(0,0,0,0.3);
                 }
 
                 .cell-content {

@@ -215,31 +215,24 @@ export function Dashboard({
                                         className={`agenda-check ${task.completed ? 'checked' : ''}`}
                                         onClick={() => onToggleTask(task.id)}
                                     >
-                                        {task.completed && <Check size={12} />}
+                                        {task.completed && <Check size={10} />}
                                     </button>
                                     <div className="agenda-info">
-                                        <span className="agenda-title">
-                                            {task.title}
-                                            {isTaskOverdue(task) && !task.wasShifted && !task.completed && <> <span className="pending-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                                                <ClockAlert size={11} />Pending</span></>}
-                                            {task.wasShifted && !task.completed && <> <span className="delayed-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                                                <Hourglass size={11} />Delayed</span></>}
-                                        </span>
+                                        <span className="agenda-title">{task.title}</span>
                                         <div className="agenda-subtitle">
                                             {task.subject && (
-                                                <span style={{
-                                                    color: `var(--${task.subject})`,
-                                                    fontWeight: 600,
-                                                    marginRight: '4px'
-                                                }}>
-                                                    {task.subject.charAt(0).toUpperCase() + task.subject.slice(1)} {task.subtitle ? '•' : ''}
+                                                <span style={{ color: `var(--${task.subject})`, fontWeight: 600 }}>
+                                                    {task.subject.charAt(0).toUpperCase() + task.subject.slice(1)}
                                                 </span>
                                             )}
-                                            {task.subtitle && task.subtitle}
+                                            {task.subtitle && <span> • {task.subtitle}</span>}
+                                            <span className={`agenda-time-inline ${task.completed ? 'completed' :
+                                                    task.wasShifted ? 'delayed' :
+                                                        isTaskOverdue(task) ? 'pending' : ''
+                                                }`}>
+                                                {getTaskTimeDisplay(task)}
+                                            </span>
                                         </div>
-                                    </div>
-                                    <div className={`agenda-time ${task.wasShifted && !task.completed ? 'delayed' : ''} ${task.completed ? 'completed-time' : ''}`}>
-                                        {getTaskTimeDisplay(task)}
                                     </div>
                                 </div>
                             ))

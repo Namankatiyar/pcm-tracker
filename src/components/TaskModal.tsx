@@ -819,6 +819,65 @@ export function TaskModal({ isOpen, onClose, onSave, initialDate, subjectData, t
                         padding: 1rem;
                     }
                 }
+
+                /* ===== Light Mode Overrides ===== */
+                :root:not([data-theme="dark"]) .type-btn,
+                [data-theme="light"] .type-btn {
+                    border: 1px solid var(--border);
+                    background: var(--bg-tertiary);
+                }
+
+                :root:not([data-theme="dark"]) .subject-option,
+                [data-theme="light"] .subject-option {
+                    border: 1px solid var(--border);
+                    background: var(--bg-tertiary);
+                }
+
+                :root:not([data-theme="dark"]) .large-input,
+                [data-theme="light"] .large-input {
+                    border: 1px solid var(--border);
+                    background: var(--bg-tertiary);
+                }
+
+                :root:not([data-theme="dark"]) .material-pill,
+                [data-theme="light"] .material-pill {
+                    background: var(--bg-tertiary);
+                    border: 1px solid var(--border);
+                }
+
+                :root:not([data-theme="dark"]) .time-display-box,
+                [data-theme="light"] .time-display-box {
+                    background: var(--bg-tertiary);
+                    border: 1px solid var(--border);
+                }
+
+                :root:not([data-theme="dark"]) .custom-time-picker,
+                [data-theme="light"] .custom-time-picker {
+                    background: var(--bg-tertiary);
+                    border: 1px solid var(--border);
+                }
+
+                :root:not([data-theme="dark"]) .time-btn:hover,
+                [data-theme="light"] .time-btn:hover {
+                    background: var(--bg-secondary);
+                }
+
+                :root:not([data-theme="dark"]) .period-btn,
+                [data-theme="light"] .period-btn {
+                    background: var(--bg-secondary);
+                    border: 1px solid var(--border);
+                }
+
+                :root:not([data-theme="dark"]) .modal-content.input-modal,
+                [data-theme="light"] .modal-content.input-modal {
+                    background: var(--bg-secondary);
+                    border: 1px solid var(--border);
+                }
+
+                :root:not([data-theme="dark"]) .modal-footer,
+                [data-theme="light"] .modal-footer {
+                    background: rgba(240, 240, 240, 0.5);
+                }
             `}</style>
         </div >
     );

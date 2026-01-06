@@ -633,7 +633,7 @@ export function AnalyticsPanels({
                     display: grid;
                     grid-template-columns: 1fr 1fr;
                     gap: 1.5rem;
-                    margin-bottom: 1.5rem;
+                    margin-bottom: 0;
                 }
 
                 .analytics-panel {

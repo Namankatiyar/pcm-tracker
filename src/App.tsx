@@ -58,18 +58,24 @@ function App() {
     // Load CSV data if not in local storage
     useEffect(() => {
         const loadSubjectData = async (subject: Subject) => {
-            if (subjectData[subject]) return;
             try {
                 const data = await parseSubjectCSV(subject);
-                setSubjectData(prev => ({ ...prev, [subject]: data }));
+                setSubjectData(prev => {
+                    // Only update if data doesn't already exist or is invalid
+                    if (prev[subject] && prev[subject]?.chapters && prev[subject]!.chapters.length > 0) {
+                        return prev;
+                    }
+                    return { ...prev, [subject]: data };
+                });
             } catch (error) {
                 console.error(`Failed to load ${subject} data:`, error);
             }
         };
 
-        loadSubjectData('physics');
-        loadSubjectData('chemistry');
-        loadSubjectData('maths');
+        // Check current state before loading - robust validity check
+        if (!subjectData.physics?.chapters?.length) loadSubjectData('physics');
+        if (!subjectData.chemistry?.chapters?.length) loadSubjectData('chemistry');
+        if (!subjectData.maths?.chapters?.length) loadSubjectData('maths');
     }, []); // Run once on mount. If subjectData is already there, it won't reload.
 
     // Load Quote Once per Session/Load
@@ -108,6 +114,19 @@ function App() {
             return shifted ? updatedTasks : currentTasks;
         });
     }, []); // Run once on mount
+
+    // Alt+N keyboard shortcut to add new task
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.altKey && event.key === 'n') {
+                event.preventDefault();
+                handleQuickAddTask();
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
 
     // Apply theme
@@ -522,7 +541,7 @@ function App() {
             <main className="main-content">
                 {renderContent()}
             </main>
-            
+
         </div>
     );
 }

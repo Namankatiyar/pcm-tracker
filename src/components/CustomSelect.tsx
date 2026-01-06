@@ -15,6 +15,7 @@ interface CustomSelectProps {
     disabled?: boolean;
     className?: string;
     icon?: React.ReactNode; // Optional leading icon
+    size?: 'default' | 'small';
 }
 
 export function CustomSelect({
@@ -24,7 +25,8 @@ export function CustomSelect({
     placeholder = 'Select...',
     disabled = false,
     className = '',
-    icon
+    icon,
+    size = 'default'
 }: CustomSelectProps) {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -48,12 +50,12 @@ export function CustomSelect({
     };
 
     return (
-        <div 
-            className={`custom-select-container ${disabled ? 'disabled' : ''} ${className}`} 
+        <div
+            className={`custom-select-container ${size} ${disabled ? 'disabled' : ''} ${className}`}
             ref={containerRef}
         >
-            <div 
-                className={`custom-select-trigger ${isOpen ? 'open' : ''}`} 
+            <div
+                className={`custom-select-trigger ${isOpen ? 'open' : ''}`}
                 onClick={() => !disabled && setIsOpen(!isOpen)}
             >
                 <div className="custom-select-value">
@@ -64,14 +66,14 @@ export function CustomSelect({
                         <span className="placeholder">{placeholder}</span>
                     )}
                 </div>
-                <ChevronDown size={16} className={`chevron-icon ${isOpen ? 'rotated' : ''}`} />
+                <ChevronDown size={size === 'small' ? 14 : 16} className={`chevron-icon ${isOpen ? 'rotated' : ''}`} />
             </div>
 
             {isOpen && (
                 <div className="custom-select-options">
                     {options.map((option) => (
-                        <div 
-                            key={option.value} 
+                        <div
+                            key={option.value}
                             className={`custom-select-option ${option.value === value ? 'selected' : ''}`}
                             onClick={() => handleSelect(option.value)}
                         >
@@ -81,7 +83,7 @@ export function CustomSelect({
                     ))}
                 </div>
             )}
-            
+
             <style>{`
                 .custom-select-container {
                     position: relative;
@@ -90,6 +92,10 @@ export function CustomSelect({
                     font-family: 'Inter', sans-serif;
                 }
                 
+                .custom-select-container.small {
+                    font-size: 0.8rem;
+                }
+
                 .custom-select-container.disabled {
                     opacity: 0.6;
                     pointer-events: none;
@@ -107,6 +113,13 @@ export function CustomSelect({
                     transition: all 0.2s;
                     user-select: none;
                     min-height: 36px;
+                }
+
+                .custom-select-container.small .custom-select-trigger {
+                    padding: 0.25rem 0.5rem;
+                    min-height: 28px;
+                    height: 28px;
+                    border-radius: 6px;
                 }
 
                 .custom-select-trigger:hover {

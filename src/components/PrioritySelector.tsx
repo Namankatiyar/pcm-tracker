@@ -15,12 +15,13 @@ export function PrioritySelector({ priority, onChange }: PrioritySelectorProps) 
     ];
 
     return (
-        <div className="priority-selector" style={{ minWidth: '110px' }}>
-            <CustomSelect 
-                value={priority} 
-                options={options} 
+        <div className="priority-selector" style={{ minWidth: '95px' }}>
+            <CustomSelect
+                value={priority}
+                options={options}
                 onChange={(val) => onChange(val as Priority)}
                 placeholder="Priority"
+                size="small"
             />
         </div>
     );

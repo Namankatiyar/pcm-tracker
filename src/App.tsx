@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Analytics } from '@vercel/analytics/react';
 import { Header } from './components/Header';
 import { Dashboard } from './components/Dashboard';
 import { SubjectPage } from './components/SubjectPage';
@@ -523,7 +522,7 @@ function App() {
             <main className="main-content">
                 {renderContent()}
             </main>
-            <Analytics />
+            
         </div>
     );
 }

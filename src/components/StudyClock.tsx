@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Play, Pause, Square, Trash2, Clock, ChevronDown, X, Pencil } from 'lucide-react';
 import { Subject, SubjectData, StudySession, PlannerTask } from '../types';
+import { CustomSelect } from './CustomSelect';
 
 interface StudyClockProps {
     subjectData: Record<Subject, SubjectData | null>;
@@ -214,12 +215,23 @@ export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSessio
         if (timerRef.current) {
             clearInterval(timerRef.current);
         }
-        setPausedTime(elapsedSeconds);
+        
+        // Calculate precise elapsed time based on wall clock to avoid stale state issues
+        let currentElapsed = elapsedSeconds;
+        if (startTime && timerState === 'running') {
+            const now = new Date();
+            const sessionDuration = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+            // Ensure we don't get negative time if system clock changed weirdly
+            currentElapsed = Math.max(0, sessionDuration + pausedTime);
+        }
+        
+        setElapsedSeconds(currentElapsed);
+        setPausedTime(currentElapsed);
         setTimerState('paused');
 
         // Save paused state to localStorage for persistence
         const pausedState: PausedTimerState = {
-            elapsedSeconds,
+            elapsedSeconds: currentElapsed,
             taskType,
             selectedSubject,
             selectedChapter,
@@ -244,7 +256,15 @@ export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSessio
             clearInterval(timerRef.current);
         }
 
-        if (elapsedSeconds > 0) {
+        // Calculate final precise time
+        let finalElapsed = elapsedSeconds;
+        if (timerState === 'running' && startTime) {
+             const now = new Date();
+             const sessionDuration = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+             finalElapsed = Math.max(0, sessionDuration + pausedTime);
+        }
+
+        if (finalElapsed > 0) {
             const session: StudySession = {
                 id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
                 title: getTaskTitle(),
@@ -255,7 +275,7 @@ export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSessio
                 type: taskType,
                 startTime: startTime?.toISOString() || new Date().toISOString(),
                 endTime: new Date().toISOString(),
-                duration: elapsedSeconds
+                duration: finalElapsed
             };
             onAddSession(session);
         }
@@ -521,97 +541,75 @@ export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSessio
                                     <div className="chapter-selectors">
                                         <div className="selector-group">
                                             <label>Subject</label>
-                                            <div className="custom-select">
-                                                <select
-                                                    value={selectedSubject}
-                                                    onChange={(e) => {
-                                                        setSelectedSubject(e.target.value as Subject | '');
-                                                        setSelectedChapter('');
-                                                        setSelectedMaterial('');
-                                                    }}
-                                                    disabled={timerState !== 'idle'}
-                                                >
-                                                    <option value="">Select Subject</option>
-                                                    <option value="physics">Physics</option>
-                                                    <option value="chemistry">Chemistry</option>
-                                                    <option value="maths">Maths</option>
-                                                </select>
-                                                <ChevronDown size={16} className="select-icon" />
-                                            </div>
+                                            <CustomSelect
+                                                value={selectedSubject}
+                                                onChange={(val) => {
+                                                    setSelectedSubject(val as Subject | '');
+                                                    setSelectedChapter('');
+                                                    setSelectedMaterial('');
+                                                }}
+                                                options={[
+                                                    { value: 'physics', label: 'Physics' },
+                                                    { value: 'chemistry', label: 'Chemistry' },
+                                                    { value: 'maths', label: 'Maths' }
+                                                ]}
+                                                placeholder="Select Subject"
+                                                disabled={timerState !== 'idle'}
+                                            />
                                         </div>
 
                                         <div className="selector-group">
                                             <label>Chapter</label>
-                                            <div className="custom-select">
-                                                <select
-                                                    value={selectedChapter}
-                                                    onChange={(e) => {
-                                                        setSelectedChapter(e.target.value ? parseInt(e.target.value) : '');
-                                                    }}
-                                                    disabled={timerState !== 'idle' || !selectedSubject}
-                                                >
-                                                    <option value="">Select Chapter</option>
-                                                    {availableChapters.map(ch => (
-                                                        <option key={ch.serial} value={ch.serial}>{ch.name}</option>
-                                                    ))}
-                                                </select>
-                                                <ChevronDown size={16} className="select-icon" />
-                                            </div>
+                                            <CustomSelect
+                                                value={selectedChapter}
+                                                onChange={(val) => setSelectedChapter(val ? Number(val) : '')}
+                                                options={availableChapters.map(ch => ({ value: ch.serial, label: ch.name }))}
+                                                placeholder="Select Chapter"
+                                                disabled={timerState !== 'idle' || !selectedSubject}
+                                            />
                                         </div>
 
                                         <div className="selector-group">
                                             <label>Material</label>
-                                            <div className="custom-select">
-                                                <select
-                                                    value={selectedMaterial}
-                                                    onChange={(e) => setSelectedMaterial(e.target.value)}
-                                                    disabled={timerState !== 'idle' || !selectedSubject}
-                                                >
-                                                    <option value="">Select Material</option>
-                                                    {availableMaterials.map(mat => (
-                                                        <option key={mat} value={mat}>{mat}</option>
-                                                    ))}
-                                                </select>
-                                                <ChevronDown size={16} className="select-icon" />
-                                            </div>
+                                            <CustomSelect
+                                                value={selectedMaterial}
+                                                onChange={(val) => setSelectedMaterial(val)}
+                                                options={availableMaterials.map(mat => ({ value: mat, label: mat }))}
+                                                placeholder="Select Material"
+                                                disabled={timerState !== 'idle' || !selectedSubject}
+                                            />
                                         </div>
                                     </div>
                                 ) : taskType === 'task' ? (
                                     <div className="task-selector">
                                         <div className="selector-group">
                                             <label>Select Task</label>
-                                            <div className="custom-select">
-                                                <select
-                                                    value={selectedTaskId}
-                                                    onChange={(e) => {
-                                                        const taskId = e.target.value;
-                                                        setSelectedTaskId(taskId);
-                                                        const task = plannerTasks.find(t => t.id === taskId);
-                                                        if (task) {
-                                                            if (task.type === 'chapter' && task.subject) {
-                                                                setSelectedSubject(task.subject);
-                                                                setSelectedChapter(task.chapterSerial || '');
-                                                                setSelectedMaterial(task.material || '');
-                                                                setCustomTitle('');
-                                                            } else {
-                                                                setSelectedSubject('');
-                                                                setSelectedChapter('');
-                                                                setSelectedMaterial('');
-                                                                setCustomTitle(task.title);
-                                                            }
+                                            <CustomSelect
+                                                value={selectedTaskId}
+                                                onChange={(taskId) => {
+                                                    setSelectedTaskId(taskId);
+                                                    const task = plannerTasks.find(t => t.id === taskId);
+                                                    if (task) {
+                                                        if (task.type === 'chapter' && task.subject) {
+                                                            setSelectedSubject(task.subject);
+                                                            setSelectedChapter(task.chapterSerial || '');
+                                                            setSelectedMaterial(task.material || '');
+                                                            setCustomTitle('');
+                                                        } else {
+                                                            setSelectedSubject('');
+                                                            setSelectedChapter('');
+                                                            setSelectedMaterial('');
+                                                            setCustomTitle(task.title);
                                                         }
-                                                    }}
-                                                    disabled={timerState !== 'idle'}
-                                                >
-                                                    <option value="">Select a task...</option>
-                                                    {plannerTasks.filter(t => !t.completed).map(task => (
-                                                        <option key={task.id} value={task.id}>
-                                                            {task.title}{task.subtitle ? ` - ${task.subtitle}` : ''}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                                <ChevronDown size={16} className="select-icon" />
-                                            </div>
+                                                    }
+                                                }}
+                                                options={plannerTasks.filter(t => !t.completed).map(task => ({
+                                                    value: task.id,
+                                                    label: `${task.title}${task.subtitle ? ` - ${task.subtitle}` : ''}`
+                                                }))}
+                                                placeholder="Select a task..."
+                                                disabled={timerState !== 'idle'}
+                                            />
                                         </div>
                                         {selectedTaskId && (() => {
                                             const task = plannerTasks.find(t => t.id === selectedTaskId);
@@ -710,59 +708,52 @@ export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSessio
                         <div className="stats-filters">
                             <div className="stats-filter-group">
                                 <label>Subject</label>
-                                <div className="custom-select">
-                                    <select
-                                        value={statsSubject}
-                                        onChange={(e) => {
-                                            setStatsSubject(e.target.value as Subject | 'all');
-                                            setStatsChapter('all');
-                                            setStatsMaterial('all');
-                                        }}
-                                    >
-                                        <option value="all">All Subjects</option>
-                                        <option value="physics">Physics</option>
-                                        <option value="chemistry">Chemistry</option>
-                                        <option value="maths">Maths</option>
-                                    </select>
-                                    <ChevronDown size={16} className="select-icon" />
-                                </div>
+                                <CustomSelect
+                                    value={statsSubject}
+                                    onChange={(val) => {
+                                        setStatsSubject(val as Subject | 'all');
+                                        setStatsChapter('all');
+                                        setStatsMaterial('all');
+                                    }}
+                                    options={[
+                                        { value: 'all', label: 'All Subjects' },
+                                        { value: 'physics', label: 'Physics' },
+                                        { value: 'chemistry', label: 'Chemistry' },
+                                        { value: 'maths', label: 'Maths' }
+                                    ]}
+                                    placeholder="Select Subject"
+                                />
                             </div>
 
                             {statsSubject !== 'all' && (
                                 <div className="stats-filter-group">
                                     <label>Chapter</label>
-                                    <div className="custom-select">
-                                        <select
-                                            value={statsChapter}
-                                            onChange={(e) => {
-                                                setStatsChapter(e.target.value === 'all' ? 'all' : parseInt(e.target.value));
-                                                setStatsMaterial('all');
-                                            }}
-                                        >
-                                            <option value="all">All Chapters</option>
-                                            {statsAvailableChapters.map(ch => (
-                                                <option key={ch.serial} value={ch.serial}>{ch.name}</option>
-                                            ))}
-                                        </select>
-                                        <ChevronDown size={16} className="select-icon" />
-                                    </div>
+                                    <CustomSelect
+                                        value={statsChapter}
+                                        onChange={(val) => {
+                                            setStatsChapter(val === 'all' ? 'all' : Number(val));
+                                            setStatsMaterial('all');
+                                        }}
+                                        options={[
+                                            { value: 'all', label: 'All Chapters' },
+                                            ...statsAvailableChapters.map(ch => ({ value: ch.serial, label: ch.name }))
+                                        ]}
+                                        placeholder="Select Chapter"
+                                    />
                                 </div>
                             )}
 
                             <div className="stats-filter-group">
                                 <label>Material</label>
-                                <div className="custom-select">
-                                    <select
-                                        value={statsMaterial}
-                                        onChange={(e) => setStatsMaterial(e.target.value)}
-                                    >
-                                        <option value="all">All Materials</option>
-                                        {statsAvailableMaterials.map(mat => (
-                                            <option key={mat} value={mat}>{mat}</option>
-                                        ))}
-                                    </select>
-                                    <ChevronDown size={16} className="select-icon" />
-                                </div>
+                                <CustomSelect
+                                    value={statsMaterial}
+                                    onChange={(val) => setStatsMaterial(val)}
+                                    options={[
+                                        { value: 'all', label: 'All Materials' },
+                                        ...statsAvailableMaterials.map(mat => ({ value: mat, label: mat }))
+                                    ]}
+                                    placeholder="Select Material"
+                                />
                             </div>
                         </div>
 
@@ -939,18 +930,17 @@ export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSessio
 
                             <div className="edit-form-group">
                                 <label>Subject</label>
-                                <div className="custom-select">
-                                    <select
-                                        value={editSubject}
-                                        onChange={(e) => setEditSubject(e.target.value as Subject | '')}
-                                    >
-                                        <option value="">None</option>
-                                        <option value="physics">Physics</option>
-                                        <option value="chemistry">Chemistry</option>
-                                        <option value="maths">Maths</option>
-                                    </select>
-                                    <ChevronDown size={16} className="select-icon" />
-                                </div>
+                                <CustomSelect
+                                    value={editSubject}
+                                    onChange={(val) => setEditSubject(val as Subject | '')}
+                                    options={[
+                                        { value: '', label: 'None' },
+                                        { value: 'physics', label: 'Physics' },
+                                        { value: 'chemistry', label: 'Chemistry' },
+                                        { value: 'maths', label: 'Maths' }
+                                    ]}
+                                    placeholder="Select Subject"
+                                />
                             </div>
 
                             <div className="edit-form-group">

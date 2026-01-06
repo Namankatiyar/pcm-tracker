@@ -4,6 +4,7 @@ import { ChapterRow } from './ChapterRow';
 import { ProgressBar } from './ProgressBar';
 import { ConfirmationModal } from './ConfirmationModal';
 import { InputModal } from './InputModal';
+import { CustomSelect } from './CustomSelect';
 import { triggerConfetti } from '../utils/confetti';
 import { Atom, FlaskConical, Calculator, Plus, X as XIcon, Pencil, Check, Filter } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -289,32 +290,19 @@ export function SubjectPage({
                                 {isEditing ? 'Actions' : (
                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                                         <span>Priority</span>
-                                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                                            <Filter
-                                                size={14}
-                                                style={{
-                                                    color: priorityFilter !== 'all' ? 'var(--accent)' : 'var(--text-muted)'
-                                                }}
-                                            />
-                                            <select
+                                        <div style={{ width: '100px' }}>
+                                            <CustomSelect
                                                 value={priorityFilter}
-                                                onChange={(e) => setPriorityFilter(e.target.value as Priority | 'all')}
-                                                style={{
-                                                    position: 'absolute',
-                                                    inset: 0,
-                                                    opacity: 0,
-                                                    cursor: 'pointer',
-                                                    width: '100%',
-                                                    height: '100%'
-                                                }}
-                                                title="Filter by priority"
-                                            >
-                                                <option value="all">All</option>
-                                                <option value="high">High</option>
-                                                <option value="medium">Medium</option>
-                                                <option value="low">Low</option>
-                                                <option value="none">None</option>
-                                            </select>
+                                                onChange={(val) => setPriorityFilter(val as Priority | 'all')}
+                                                options={[
+                                                    { value: 'all', label: 'All' },
+                                                    { value: 'high', label: 'High' },
+                                                    { value: 'medium', label: 'Medium' },
+                                                    { value: 'low', label: 'Low' },
+                                                    { value: 'none', label: 'None' }
+                                                ]}
+                                                placeholder="All"
+                                            />
                                         </div>
                                     </div>
                                 )}
@@ -322,27 +310,50 @@ export function SubjectPage({
                         </tr>
                     </thead>
                     <tbody>
-                        {data.chapters.filter(chapter => {
-                            if (priorityFilter === 'all') return true;
-                            const chapPriority = progress[chapter.serial]?.priority || 'none';
-                            return chapPriority === priorityFilter;
-                        }).map((chapter, index) => (
-                            <ChapterRow
-                                key={chapter.serial}
-                                chapter={chapter}
-                                index={index}
-                                materialNames={data.materialNames}
-                                progress={progress[chapter.serial]}
-                                onToggleMaterial={handleToggleMaterialWithConfetti}
-                                onSetPriority={onSetPriority}
-                                isEditing={isEditing}
-                                onRename={(name) => onRenameChapter?.(chapter.serial, name)}
-                                onDelete={() => setChapterToDelete({ isOpen: true, serial: chapter.serial, name: chapter.name })}
-                                onDragStart={(e) => handleDragStart(e, index)}
-                                onDragEnter={(e) => handleDragEnter(e, index)}
-                                onDragEnd={handleDragEnd}
-                            />
-                        ))}
+                        {(() => {
+                            let sortedChapters = [...data.chapters];
+
+                            if (priorityFilter !== 'all') {
+                                const getPriorityWeight = (p: Priority) => {
+                                    switch (p) {
+                                        case 'high': return 3;
+                                        case 'medium': return 2;
+                                        case 'low': return 1;
+                                        default: return 0;
+                                    }
+                                };
+
+                                sortedChapters.sort((a, b) => {
+                                    const pA = progress[a.serial]?.priority || 'none';
+                                    const pB = progress[b.serial]?.priority || 'none';
+
+                                    // If one matches the filter and the other doesn't, the match comes first
+                                    if (pA === priorityFilter && pB !== priorityFilter) return -1;
+                                    if (pA !== priorityFilter && pB === priorityFilter) return 1;
+
+                                    // Otherwise sort by weight descending (High > Medium > Low > None)
+                                    return getPriorityWeight(pB) - getPriorityWeight(pA);
+                                });
+                            }
+
+                            return sortedChapters.map((chapter, index) => (
+                                <ChapterRow
+                                    key={chapter.serial}
+                                    chapter={chapter}
+                                    index={index}
+                                    materialNames={data.materialNames}
+                                    progress={progress[chapter.serial]}
+                                    onToggleMaterial={handleToggleMaterialWithConfetti}
+                                    onSetPriority={onSetPriority}
+                                    isEditing={isEditing}
+                                    onRename={(name) => onRenameChapter?.(chapter.serial, name)}
+                                    onDelete={() => setChapterToDelete({ isOpen: true, serial: chapter.serial, name: chapter.name })}
+                                    onDragStart={(e) => handleDragStart(e, index)}
+                                    onDragEnter={(e) => handleDragEnter(e, index)}
+                                    onDragEnd={handleDragEnd}
+                                />
+                            ));
+                        })()}
                     </tbody>
                 </table>
                 {isEditing && (

@@ -211,7 +211,9 @@ export function AnalyticsPanels({
     // Mock scores chart data
     const mockScoresChartData = useMemo(() => {
         const sortedScores = [...mockScores].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-        const labels = sortedScores.map(s => s.name);
+        // Use serial numbers if density is high (more than 3), otherwise names
+        const useSerialNumbers = sortedScores.length > 3;
+        const labels = sortedScores.map((s, index) => useSerialNumbers ? (index + 1).toString() : s.name);
 
         return {
             labels,
@@ -373,7 +375,18 @@ export function AnalyticsPanels({
                 titleFont: { family: 'Inter' },
                 bodyFont: { family: 'Inter' },
                 padding: 10,
-                cornerRadius: 8
+                cornerRadius: 8,
+                callbacks: {
+                    title: (context: any) => {
+                        // Use original name in tooltip if we are showing serial numbers
+                        if (mockScores.length > 3) {
+                            const sortedScores = [...mockScores].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+                            const index = context[0].dataIndex;
+                            return `${index + 1}. ${sortedScores[index].name}`;
+                        }
+                        return context[0].label;
+                    }
+                }
             }
         },
         scales: {
@@ -394,7 +407,7 @@ export function AnalyticsPanels({
                 max: 300
             }
         }
-    }), [axisColor, gridColor]);
+    }), [axisColor, gridColor, mockScores]);
 
     // Get week/month display label
     const getWeekLabel = () => {
@@ -496,8 +509,10 @@ export function AnalyticsPanels({
                 </div>
 
                 {mockScores.length > 0 ? (
-                    <div className="chart-container">
-                        <Line data={mockScoresChartData} options={mockChartOptions} />
+                    <div className={`chart-container ${mockScores.length > 3 ? 'scrollable' : ''}`}>
+                        <div style={{ minWidth: mockScores.length > 3 ? `${mockScores.length * 60}px` : '100%', height: '100%' }}>
+                            <Line data={mockScoresChartData} options={mockChartOptions} />
+                        </div>
                     </div>
                 ) : (
                     <div className="empty-mock-state">
@@ -508,24 +523,35 @@ export function AnalyticsPanels({
                 )}
 
                 {mockScores.length > 0 && (
-                    <div className="mock-list">
-                        {[...mockScores].reverse().slice(0, 3).map(score => (
-                            <div key={score.id} className="mock-item">
-                                <div className="mock-info">
-                                    <span className="mock-name">{score.name}</span>
-                                    <span className="mock-date">{new Date(score.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-                                </div>
-                                <div className="mock-scores-mini">
-                                    <span style={{ color: subjectColors.physics }}>{score.physicsMarks}</span>
-                                    <span style={{ color: subjectColors.chemistry }}>{score.chemistryMarks}</span>
-                                    <span style={{ color: subjectColors.maths }}>{score.mathsMarks}</span>
-                                    <span className="total-score">{score.totalMarks}/{score.maxMarks || 300}</span>
-                                </div>
-                                <button className="delete-mock-btn" onClick={() => onDeleteMockScore(score.id)}>
-                                    <Trash2 size={14} />
-                                </button>
-                            </div>
-                        ))}
+                    <div className={`mock-list ${mockScores.length > 3 ? 'scrollable-list' : ''}`}>
+                        {[...mockScores]
+                            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                            .reverse()
+                            .map((score, idx) => {
+                                // Find the original index/serial number
+                                const sortedScores = [...mockScores].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+                                const serialNumber = sortedScores.findIndex(s => s.id === score.id) + 1;
+                                
+                                return (
+                                    <div key={score.id} className="mock-item">
+                                        <div className="mock-info">
+                                            <span className="mock-name">
+                                                <span className="serial-badge">#{serialNumber}</span> {score.name}
+                                            </span>
+                                            <span className="mock-date">{new Date(score.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                                        </div>
+                                        <div className="mock-scores-mini">
+                                            <span style={{ color: subjectColors.physics }}>{score.physicsMarks}</span>
+                                            <span style={{ color: subjectColors.chemistry }}>{score.chemistryMarks}</span>
+                                            <span style={{ color: subjectColors.maths }}>{score.mathsMarks}</span>
+                                            <span className="total-score">{score.totalMarks}/{score.maxMarks || 300}</span>
+                                        </div>
+                                        <button className="delete-mock-btn" onClick={() => onDeleteMockScore(score.id)}>
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
+                                );
+                            })}
                     </div>
                 )}
             </div>
@@ -707,6 +733,20 @@ export function AnalyticsPanels({
                     position: relative;
                 }
 
+                .chart-container.scrollable {
+                    overflow-x: auto;
+                    padding-bottom: 0.5rem;
+                }
+
+                .chart-container.scrollable::-webkit-scrollbar {
+                    height: 6px;
+                }
+
+                .chart-container.scrollable::-webkit-scrollbar-thumb {
+                    background: var(--border);
+                    border-radius: 10px;
+                }
+
                 .add-mock-btn {
                     display: flex;
                     align-items: center;
@@ -765,6 +805,21 @@ export function AnalyticsPanels({
                     gap: 0.5rem;
                     border-top: 1px solid var(--border);
                     padding-top: 1rem;
+                }
+
+                .mock-list.scrollable-list {
+                    max-height: 200px;
+                    overflow-y: auto;
+                    padding-right: 4px;
+                }
+
+                .mock-list.scrollable-list::-webkit-scrollbar {
+                    width: 4px;
+                }
+
+                .mock-list.scrollable-list::-webkit-scrollbar-thumb {
+                    background: var(--border);
+                    border-radius: 10px;
                 }
 
                 .mock-item {

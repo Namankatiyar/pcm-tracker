@@ -2236,6 +2236,8 @@ td.material-cell {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  position: relative;
+  z-index: 20;
 }
 
 .timer-card.horizontal {
@@ -3519,3 +3521,40 @@ td.material-cell {
   right: 1rem;
   z-index: 2001;
 }
+/* ===== Scrollable Chart ===== */
+.chart-container.scrollable {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 0.5rem; /* Space for scrollbar */
+}
+
+.chart-container.scrollable::-webkit-scrollbar {
+  height: 6px;
+}
+
+.chart-container.scrollable::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+  border-radius: 3px;
+}
+
+.chart-container.scrollable::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+.chart-container.scrollable::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+.serial-badge {
+  display: inline-block;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-right: 6px;
+  border: 1px solid var(--border);
+}
+

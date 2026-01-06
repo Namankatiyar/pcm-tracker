@@ -40,3 +40,4 @@ Context.md
 
 *.exe
 *.zip
+.gemini/config.yaml

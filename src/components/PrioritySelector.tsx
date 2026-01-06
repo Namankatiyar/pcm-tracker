@@ -1,4 +1,5 @@
 import { Priority } from '../types';
+import { CustomSelect } from './CustomSelect';
 
 interface PrioritySelectorProps {
     priority: Priority;
@@ -6,30 +7,21 @@ interface PrioritySelectorProps {
 }
 
 export function PrioritySelector({ priority, onChange }: PrioritySelectorProps) {
-    const options: { value: Priority; label: string; color: string }[] = [
-        { value: 'none', label: '—', color: 'var(--text-muted)' },
+    const options = [
+        { value: 'none', label: 'None', color: 'var(--text-muted)' },
         { value: 'high', label: 'High', color: 'var(--priority-high)' },
-        { value: 'medium', label: 'Med', color: 'var(--priority-medium)' },
+        { value: 'medium', label: 'Medium', color: 'var(--priority-medium)' },
         { value: 'low', label: 'Low', color: 'var(--priority-low)' },
     ];
 
     return (
-        <div className="priority-selector">
-            {options.map(({ value, label, color }) => (
-                <button
-                    key={value}
-                    className={`priority-btn ${priority === value ? 'active' : ''}`}
-                    style={{
-                        '--priority-color': color,
-                        borderColor: priority === value ? color : 'transparent',
-                        backgroundColor: priority === value ? `${color}20` : 'transparent'
-                    } as React.CSSProperties}
-                    onClick={() => onChange(value)}
-                    title={value === 'none' ? 'No priority' : `${label} priority`}
-                >
-                    {label}
-                </button>
-            ))}
+        <div className="priority-selector" style={{ minWidth: '110px' }}>
+            <CustomSelect 
+                value={priority} 
+                options={options} 
+                onChange={(val) => onChange(val as Priority)}
+                placeholder="Priority"
+            />
         </div>
     );
 }

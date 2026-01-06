@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Pause, Square, Trash2, Clock, ChevronDown, X, Pencil } from 'lucide-react';
+import { Play, Pause, Square, Trash2, Clock, X, Pencil } from 'lucide-react';
 import { Subject, SubjectData, StudySession, PlannerTask } from '../types';
 import { CustomSelect } from './CustomSelect';
 
@@ -215,7 +215,7 @@ export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSessio
         if (timerRef.current) {
             clearInterval(timerRef.current);
         }
-        
+
         // Calculate precise elapsed time based on wall clock to avoid stale state issues
         let currentElapsed = elapsedSeconds;
         if (startTime && timerState === 'running') {
@@ -224,7 +224,7 @@ export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSessio
             // Ensure we don't get negative time if system clock changed weirdly
             currentElapsed = Math.max(0, sessionDuration + pausedTime);
         }
-        
+
         setElapsedSeconds(currentElapsed);
         setPausedTime(currentElapsed);
         setTimerState('paused');
@@ -259,9 +259,9 @@ export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSessio
         // Calculate final precise time
         let finalElapsed = elapsedSeconds;
         if (timerState === 'running' && startTime) {
-             const now = new Date();
-             const sessionDuration = Math.floor((now.getTime() - startTime.getTime()) / 1000);
-             finalElapsed = Math.max(0, sessionDuration + pausedTime);
+            const now = new Date();
+            const sessionDuration = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+            finalElapsed = Math.max(0, sessionDuration + pausedTime);
         }
 
         if (finalElapsed > 0) {
@@ -410,9 +410,9 @@ export function StudyClock({ subjectData, sessions, onAddSession, onDeleteSessio
         : [];
 
     // Get all unique materials from sessions - either for specific subject or all
-    const statsAvailableMaterials = statsSubject !== 'all'
-        ? [...new Set(sessions.filter(s => s.subject === statsSubject && (statsChapter === 'all' || s.chapterSerial === statsChapter)).map(s => s.material).filter(Boolean))]
-        : [...new Set(sessions.map(s => s.material).filter(Boolean))] as string[];
+    const statsAvailableMaterials: string[] = statsSubject !== 'all'
+        ? Array.from(new Set(sessions.filter(s => s.subject === statsSubject && (statsChapter === 'all' || s.chapterSerial === statsChapter)).map(s => s.material))).filter((m): m is string => !!m)
+        : Array.from(new Set(sessions.map(s => s.material))).filter((m): m is string => !!m);
 
     // Edit session helper functions
     const openEditModal = (session: StudySession) => {

@@ -527,11 +527,11 @@ export function AnalyticsPanels({
                         {[...mockScores]
                             .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
                             .reverse()
-                            .map((score, idx) => {
+                            .map((score) => {
                                 // Find the original index/serial number
                                 const sortedScores = [...mockScores].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
                                 const serialNumber = sortedScores.findIndex(s => s.id === score.id) + 1;
-                                
+
                                 return (
                                     <div key={score.id} className="mock-item">
                                         <div className="mock-info">

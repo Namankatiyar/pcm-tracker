@@ -4,7 +4,7 @@ import { Subject, SubjectData, PlannerTask, StudySession, MockScore } from '../t
 import { TaskLog } from './TaskLog';
 import { DatePickerModal } from './DatePickerModal';
 import { AnalyticsPanels } from './AnalyticsPanels';
-import { Atom, FlaskConical, Calculator, Zap, Calendar, Check, ClockAlert, Hourglass } from 'lucide-react';
+import { Atom, FlaskConical, Calculator, Zap, Calendar, Check } from 'lucide-react';
 import { formatDateLocal, formatTime12Hour } from '../utils/date';
 
 interface DashboardProps {

@@ -4,7 +4,6 @@ import { ChapterRow } from './ChapterRow';
 import { ProgressBar } from './ProgressBar';
 import { ConfirmationModal } from './ConfirmationModal';
 import { InputModal } from './InputModal';
-import { CustomSelect } from './CustomSelect';
 import { triggerConfetti } from '../utils/confetti';
 import { Atom, FlaskConical, Calculator, Plus, X as XIcon, Pencil, Check, Filter } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';

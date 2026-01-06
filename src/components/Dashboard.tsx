@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { ProgressRing } from './ProgressBar';
-import { Subject, SubjectData, PlannerTask, StudySession } from '../types';
+import { Subject, SubjectData, PlannerTask, StudySession, MockScore } from '../types';
 import { TaskLog } from './TaskLog';
 import { DatePickerModal } from './DatePickerModal';
+import { AnalyticsPanels } from './AnalyticsPanels';
 import { Atom, FlaskConical, Calculator, Zap, Calendar, Check, ClockAlert, Hourglass } from 'lucide-react';
 import { formatDateLocal, formatTime12Hour } from '../utils/date';
 
@@ -20,6 +21,9 @@ interface DashboardProps {
     onExamDateChange: (date: string) => void;
     onQuickAdd: () => void;
     studySessions?: StudySession[];
+    mockScores?: MockScore[];
+    onAddMockScore?: (score: Omit<MockScore, 'id'>) => void;
+    onDeleteMockScore?: (id: string) => void;
 }
 
 export function Dashboard({
@@ -35,7 +39,10 @@ export function Dashboard({
     examDate,
     onExamDateChange,
     onQuickAdd,
-    studySessions = []
+    studySessions = [],
+    mockScores = [],
+    onAddMockScore = () => { },
+    onDeleteMockScore = () => { }
 }: DashboardProps) {
     const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
@@ -317,6 +324,13 @@ export function Dashboard({
                     );
                 })}
             </div>
+
+            <AnalyticsPanels
+                studySessions={studySessions}
+                mockScores={mockScores}
+                onAddMockScore={onAddMockScore}
+                onDeleteMockScore={onDeleteMockScore}
+            />
 
             <TaskLog tasks={plannerTasks} />
 

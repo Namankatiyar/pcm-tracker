@@ -116,7 +116,8 @@
 [data-theme="dark"] .monthly-calendar,
 [data-theme="dark"] .settings-panel,
 [data-theme="dark"] .modal-content,
-[data-theme="dark"] .view-toggles {
+[data-theme="dark"] .view-toggles,
+[data-theme="dark"] .analytics-panel {
   background: var(--glass-bg) !important;
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));

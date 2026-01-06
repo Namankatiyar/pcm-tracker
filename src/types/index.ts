@@ -55,3 +55,14 @@ export interface StudySession {
     endTime: string;        // ISO timestamp
     duration: number;       // in seconds
 }
+
+export interface MockScore {
+    id: string;
+    name: string;           // e.g., "Mock Test 1", "NTA Mock 3"
+    date: string;           // YYYY-MM-DD
+    physicsMarks: number;
+    chemistryMarks: number;
+    mathsMarks: number;
+    totalMarks: number;     // Sum of all three
+    maxMarks?: number;      // Optional, defaults to 300
+}

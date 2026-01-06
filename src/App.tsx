@@ -9,7 +9,7 @@ import { useProgress } from './hooks/useProgress';
 import { parseSubjectCSV } from './utils/csvParser';
 import { formatDateLocal } from './utils/date';
 import { triggerSmallConfetti } from './utils/confetti';
-import { AppProgress, Subject, SubjectData, Priority, PlannerTask, StudySession } from './types';
+import { AppProgress, Subject, SubjectData, Priority, PlannerTask, StudySession, MockScore } from './types';
 import quotes from './quotes.json';
 
 type View = 'dashboard' | 'planner' | 'studyclock' | Subject;
@@ -43,6 +43,7 @@ function App() {
         maths: []
     });
     const [studySessions, setStudySessions] = useLocalStorage<StudySession[]>('jee-tracker-study-sessions', []);
+    const [mockScores, setMockScores] = useLocalStorage<MockScore[]>('jee-tracker-mock-scores', []);
 
     const [plannerDateToOpen, setPlannerDateToOpen] = useState<string | null>(null);
 
@@ -421,6 +422,19 @@ function App() {
         setStudySessions(prev => prev.map(s => s.id === session.id ? session : s));
     };
 
+    // Mock Score Handlers
+    const handleAddMockScore = (score: Omit<MockScore, 'id'>) => {
+        const newScore: MockScore = {
+            ...score,
+            id: Date.now().toString() + Math.random().toString(36).substr(2, 9)
+        };
+        setMockScores(prev => [...prev, newScore]);
+    };
+
+    const handleDeleteMockScore = (id: string) => {
+        setMockScores(prev => prev.filter(s => s.id !== id));
+    };
+
     const renderContent = () => {
         if (currentView === 'dashboard') {
             return (
@@ -438,6 +452,9 @@ function App() {
                     onExamDateChange={setExamDate}
                     onQuickAdd={handleQuickAddTask}
                     studySessions={studySessions}
+                    mockScores={mockScores}
+                    onAddMockScore={handleAddMockScore}
+                    onDeleteMockScore={handleDeleteMockScore}
                 />
             );
         }

@@ -36,22 +36,22 @@ export function TaskLog({ tasks }: TaskLogProps) {
                 {completedTasks.length > 0 ? (
                     completedTasks.map(task => (
                         <div key={task.id} className="agenda-item" style={{ background: 'var(--bg-tertiary)' }}>
-                             <div className="agenda-check checked" style={{ cursor: 'default' }}>
+                            <div className="agenda-check checked" style={{ cursor: 'default' }}>
                                 <CheckCircle2 size={14} />
                             </div>
                             <div className="agenda-info">
                                 <span className="agenda-title" style={{ color: 'var(--text-primary)' }}>{task.title}</span>
                                 <div className="agenda-subtitle">
-                                     {task.subject && (
-                                        <span style={{ 
-                                            color: `var(--${task.subject})`, 
+                                    {task.subject && (
+                                        <span style={{
+                                            color: `var(--${task.subject})`,
                                             fontWeight: 600,
                                             marginRight: '4px'
                                         }}>
                                             {task.subject.charAt(0).toUpperCase() + task.subject.slice(1)} {task.subtitle ? '•' : ''}
                                         </span>
                                     )}
-                                    {task.subtitle && task.subtitle}
+                                    {task.subtitle && <span className="agenda-subtitle-text">{task.subtitle}</span>}
                                 </div>
                             </div>
                             <div className="agenda-time" style={{ fontSize: '0.7rem' }}>

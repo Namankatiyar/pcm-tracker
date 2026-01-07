@@ -50,6 +50,7 @@ export function ColorPickerModal({ isOpen, currentColor, onConfirm, onClose }: C
     const [saturation, setSaturation] = useState(70);
     const [lightness, setLightness] = useState(50);
     const [previewColor, setPreviewColor] = useState(currentColor);
+    const [hexInput, setHexInput] = useState(currentColor);
 
     const hueSliderRef = useRef<HTMLDivElement>(null);
     const satLightRef = useRef<HTMLDivElement>(null);
@@ -70,6 +71,24 @@ export function ColorPickerModal({ isOpen, currentColor, onConfirm, onClose }: C
         const newColor = hslToHex(hue, saturation, lightness);
         setPreviewColor(newColor);
     }, [hue, saturation, lightness]);
+
+    // Sync input with preview color
+    useEffect(() => {
+        setHexInput(previewColor.toUpperCase());
+    }, [previewColor]);
+
+    const handleHexInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value;
+        setHexInput(val);
+
+        // Validate hex code
+        if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+            const hsl = hexToHsl(val);
+            setHue(hsl.h);
+            setSaturation(hsl.s);
+            setLightness(hsl.l);
+        }
+    };
 
     const handleHueChange = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
         if (!hueSliderRef.current) return;
@@ -194,9 +213,24 @@ export function ColorPickerModal({ isOpen, currentColor, onConfirm, onClose }: C
                     {/* Preview Section */}
                     <div className="color-preview-section">
                         <div className="color-preview-box" style={{ background: previewColor }}>
-                            <span style={{ color: lightness > 60 ? '#000' : '#fff', fontWeight: 600 }}>
-                                {previewColor.toUpperCase()}
-                            </span>
+                            <input
+                                type="text"
+                                value={hexInput}
+                                onChange={handleHexInputChange}
+                                style={{
+                                    background: 'transparent',
+                                    borderRadius: '6px',
+                                    padding: '4px 8px',
+                                    border: 'none',
+                                    color: lightness > 60 ? '#000' : '#fff',
+                                    fontWeight: 700,
+                                    fontSize: '1.2rem',
+                                    textAlign: 'center',
+                                    width: '140px',
+                                    outline: 'none',
+                                    textTransform: 'uppercase'
+                                }}
+                            />
                         </div>
                     </div>
                 </div>

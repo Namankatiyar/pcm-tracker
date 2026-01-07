@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Subject } from '../types';
-import { LayoutDashboard, Atom, FlaskConical, Calculator, Sun, Moon, Palette, Settings, Calendar, Clock, Menu, Plus } from 'lucide-react';
+import { LayoutDashboard, Atom, FlaskConical, Calculator, Sun, Moon, Palette, Settings, Calendar, Clock, Menu } from 'lucide-react';
 import { SettingsModal } from './SettingsModal';
 import { ColorPickerModal } from './ColorPickerModal';
 
@@ -15,7 +15,7 @@ interface HeaderProps {
 }
 
 const ACCENT_COLORS = [
-    { name: 'Indigo', value: '#6366f1' },
+    { name: 'Cyan', value: '#00F0FF' },
     { name: 'Emerald', value: '#10b981' },
     { name: 'Amber', value: '#f59e0b' },
     { name: 'Rose', value: '#e11d48' },
@@ -244,7 +244,7 @@ export function Header({ currentView, onNavigate, theme, onThemeToggle, accentCo
                                                 setIsMobileMenuOpen(false);
                                             }}
                                         >
-                                            <Plus size={16} />
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
                                         </button>
                                     </div>
                                 </div>

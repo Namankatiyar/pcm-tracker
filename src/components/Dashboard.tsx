@@ -225,10 +225,10 @@ export function Dashboard({
                                                     {task.subject.charAt(0).toUpperCase() + task.subject.slice(1)}
                                                 </span>
                                             )}
-                                            {task.subtitle && <span> • {task.subtitle}</span>}
+                                            {task.subtitle && <span className="agenda-subtitle-text"> • {task.subtitle}</span>}
                                             <span className={`agenda-time-inline ${task.completed ? 'completed' :
-                                                    task.wasShifted ? 'delayed' :
-                                                        isTaskOverdue(task) ? 'pending' : ''
+                                                task.wasShifted ? 'delayed' :
+                                                    isTaskOverdue(task) ? 'pending' : ''
                                                 }`}>
                                                 {getTaskTimeDisplay(task)}
                                             </span>

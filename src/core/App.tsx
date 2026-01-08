@@ -1,17 +1,20 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Header } from '../shared/components/layout/Header';
-import { Dashboard } from '../features/dashboard/components/Dashboard';
-import { SubjectPage } from '../features/subjects/components/SubjectPage';
-import { Planner } from '../features/planner/components/Planner';
-import { StudyClock } from '../features/study-clock/components/StudyClock';
 import { useLocalStorage } from '../shared/hooks/useLocalStorage';
 import { useProgress } from '../shared/hooks/useProgress';
 import { parseSubjectCSV } from '../shared/utils/csvParser';
 import { formatDateLocal } from '../shared/utils/date';
 import { triggerSmallConfetti } from '../shared/utils/confetti';
 import { AppProgress, Subject, SubjectData, Priority, PlannerTask, StudySession, MockScore } from '../shared/types';
+import { PageLoader } from '../shared/components/ui/PageLoader';
 import quotes from '../quotes.json';
+
+// Lazy load feature components
+const Dashboard = lazy(() => import('../features/dashboard/components/Dashboard').then(module => ({ default: module.Dashboard })));
+const SubjectPage = lazy(() => import('../features/subjects/components/SubjectPage').then(module => ({ default: module.SubjectPage })));
+const Planner = lazy(() => import('../features/planner/components/Planner').then(module => ({ default: module.Planner })));
+const StudyClock = lazy(() => import('../features/study-clock/components/StudyClock').then(module => ({ default: module.StudyClock })));
 
 type View = 'dashboard' | 'planner' | 'studyclock' | Subject;
 
@@ -483,77 +486,79 @@ function App() {
                 onAccentChange={setAccentColor}
             />
             <main className="main-content">
-                <Routes>
-                    <Route path="/" element={
-                        <Dashboard
-                            physicsProgress={physicsProgress}
-                            chemistryProgress={chemistryProgress}
-                            mathsProgress={mathsProgress}
-                            overallProgress={overallProgress}
-                            subjectData={mergedSubjectData}
-                            onNavigate={handleNavigate}
-                            quote={dailyQuote}
-                            plannerTasks={plannerTasks}
-                            onToggleTask={handleTogglePlannerTask}
-                            examDate={examDate}
-                            onExamDateChange={setExamDate}
-                            onQuickAdd={handleQuickAddTask}
-                            studySessions={studySessions}
-                            mockScores={mockScores}
-                            onAddMockScore={handleAddMockScore}
-                            onDeleteMockScore={handleDeleteMockScore}
-                        />
-                    } />
-                    
-                    <Route path="/planner" element={
-                        <Planner
-                            tasks={plannerTasks}
-                            onAddTask={handleAddPlannerTask}
-                            onEditTask={handleEditPlannerTask}
-                            onToggleTask={handleTogglePlannerTask}
-                            onDeleteTask={handleDeletePlannerTask}
-                            subjectData={mergedSubjectData}
-                            examDate={examDate}
-                            initialOpenDate={plannerDateToOpen}
-                            onConsumeInitialDate={() => setPlannerDateToOpen(null)}
-                            sessions={studySessions}
-                        />
-                    } />
-
-                    <Route path="/studyclock" element={
-                        <StudyClock
-                            subjectData={mergedSubjectData}
-                            sessions={studySessions}
-                            onAddSession={handleAddStudySession}
-                            onDeleteSession={handleDeleteStudySession}
-                            onEditSession={handleEditStudySession}
-                            plannerTasks={plannerTasks}
-                        />
-                    } />
-
-                    {/* Subject Routes */}
-                    {(['physics', 'chemistry', 'maths'] as Subject[]).map(subject => (
-                        <Route key={subject} path={`/${subject}`} element={
-                            <SubjectPage
-                                subject={subject}
-                                data={mergedSubjectData[subject]}
-                                progress={progress[subject]}
-                                subjectProgress={calculateSubjectProgress(subject)}
-                                onToggleMaterial={(serial, material) => handleToggleMaterial(subject, serial, material)}
-                                onSetPriority={(serial, priority) => handleSetPriority(subject, serial, priority)}
-                                onAddMaterial={(name) => handleAddColumn(subject, name)}
-                                onRemoveMaterial={(name) => handleRemoveColumn(subject, name)}
-                                onAddChapter={(name) => handleAddChapter(subject, name)}
-                                onRemoveChapter={(serial) => handleRemoveChapter(subject, serial)}
-                                onRenameChapter={(serial, name) => handleRenameChapter(subject, serial, name)}
-                                onReorderChapters={(chapters) => handleReorderChapters(subject, chapters)}
-                                onReorderMaterials={(materials) => handleReorderMaterials(subject, materials)}
+                <Suspense fallback={<PageLoader />}>
+                    <Routes>
+                        <Route path="/" element={
+                            <Dashboard
+                                physicsProgress={physicsProgress}
+                                chemistryProgress={chemistryProgress}
+                                mathsProgress={mathsProgress}
+                                overallProgress={overallProgress}
+                                subjectData={mergedSubjectData}
+                                onNavigate={handleNavigate}
+                                quote={dailyQuote}
+                                plannerTasks={plannerTasks}
+                                onToggleTask={handleTogglePlannerTask}
+                                examDate={examDate}
+                                onExamDateChange={setExamDate}
+                                onQuickAdd={handleQuickAddTask}
+                                studySessions={studySessions}
+                                mockScores={mockScores}
+                                onAddMockScore={handleAddMockScore}
+                                onDeleteMockScore={handleDeleteMockScore}
                             />
                         } />
-                    ))}
+                        
+                        <Route path="/planner" element={
+                            <Planner
+                                tasks={plannerTasks}
+                                onAddTask={handleAddPlannerTask}
+                                onEditTask={handleEditPlannerTask}
+                                onToggleTask={handleTogglePlannerTask}
+                                onDeleteTask={handleDeletePlannerTask}
+                                subjectData={mergedSubjectData}
+                                examDate={examDate}
+                                initialOpenDate={plannerDateToOpen}
+                                onConsumeInitialDate={() => setPlannerDateToOpen(null)}
+                                sessions={studySessions}
+                            />
+                        } />
 
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
+                        <Route path="/studyclock" element={
+                            <StudyClock
+                                subjectData={mergedSubjectData}
+                                sessions={studySessions}
+                                onAddSession={handleAddStudySession}
+                                onDeleteSession={handleDeleteStudySession}
+                                onEditSession={handleEditStudySession}
+                                plannerTasks={plannerTasks}
+                            />
+                        } />
+
+                        {/* Subject Routes */}
+                        {(['physics', 'chemistry', 'maths'] as Subject[]).map(subject => (
+                            <Route key={subject} path={`/${subject}`} element={
+                                <SubjectPage
+                                    subject={subject}
+                                    data={mergedSubjectData[subject]}
+                                    progress={progress[subject]}
+                                    subjectProgress={calculateSubjectProgress(subject)}
+                                    onToggleMaterial={(serial, material) => handleToggleMaterial(subject, serial, material)}
+                                    onSetPriority={(serial, priority) => handleSetPriority(subject, serial, priority)}
+                                    onAddMaterial={(name) => handleAddColumn(subject, name)}
+                                    onRemoveMaterial={(name) => handleRemoveColumn(subject, name)}
+                                    onAddChapter={(name) => handleAddChapter(subject, name)}
+                                    onRemoveChapter={(serial) => handleRemoveChapter(subject, serial)}
+                                    onRenameChapter={(serial, name) => handleRenameChapter(subject, serial, name)}
+                                    onReorderChapters={(chapters) => handleReorderChapters(subject, chapters)}
+                                    onReorderMaterials={(materials) => handleReorderMaterials(subject, materials)}
+                                />
+                            } />
+                        ))}
+
+                        <Route path="*" element={<Navigate to="/" replace />} />
+                    </Routes>
+                </Suspense>
             </main>
 
         </div>

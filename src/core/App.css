@@ -101,28 +101,55 @@
 }
 
 /* ===== Dark Mode Glassmorphism Effects ===== */
-/* Apply glass effect to all major cards and panels */
-[data-theme="dark"] .overall-progress-card,
-[data-theme="dark"] .exam-countdown-card,
-[data-theme="dark"] .agenda-card,
-[data-theme="dark"] .task-log-card,
-[data-theme="dark"] .subject-card,
-[data-theme="dark"] .chapter-card,
-[data-theme="dark"] .study-clock-container,
-[data-theme="dark"] .timer-card,
-[data-theme="dark"] .stats-panel,
-[data-theme="dark"] .session-log-panel,
-[data-theme="dark"] .day-column,
-[data-theme="dark"] .monthly-calendar,
-[data-theme="dark"] .settings-panel,
-[data-theme="dark"] .modal-content,
-[data-theme="dark"] .view-toggles,
-[data-theme="dark"] .analytics-panel {
-  background: var(--glass-bg) !important;
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--glass-border) !important;
-  box-shadow: var(--glass-inner-glow), var(--glass-shadow) !important;
+/* Apply glass effect to all major cards and panels - DESKTOP ONLY */
+@media (min-width: 768px) {
+  [data-theme="dark"] .overall-progress-card,
+  [data-theme="dark"] .exam-countdown-card,
+  [data-theme="dark"] .agenda-card,
+  [data-theme="dark"] .task-log-card,
+  [data-theme="dark"] .subject-card,
+  [data-theme="dark"] .chapter-card,
+  [data-theme="dark"] .study-clock-container,
+  [data-theme="dark"] .timer-card,
+  [data-theme="dark"] .stats-panel,
+  [data-theme="dark"] .session-log-panel,
+  [data-theme="dark"] .day-column,
+  [data-theme="dark"] .monthly-calendar,
+  [data-theme="dark"] .settings-panel,
+  [data-theme="dark"] .modal-content,
+  [data-theme="dark"] .view-toggles,
+  [data-theme="dark"] .analytics-panel {
+    background: var(--glass-bg) !important;
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border) !important;
+    box-shadow: var(--glass-inner-glow), var(--glass-shadow) !important;
+  }
+}
+
+/* Fallback for Mobile - Solid Colors for Performance */
+@media (max-width: 767px) {
+  [data-theme="dark"] .overall-progress-card,
+  [data-theme="dark"] .exam-countdown-card,
+  [data-theme="dark"] .agenda-card,
+  [data-theme="dark"] .task-log-card,
+  [data-theme="dark"] .subject-card,
+  [data-theme="dark"] .chapter-card,
+  [data-theme="dark"] .study-clock-container,
+  [data-theme="dark"] .timer-card,
+  [data-theme="dark"] .stats-panel,
+  [data-theme="dark"] .session-log-panel,
+  [data-theme="dark"] .day-column,
+  [data-theme="dark"] .monthly-calendar,
+  [data-theme="dark"] .settings-panel,
+  [data-theme="dark"] .modal-content,
+  [data-theme="dark"] .view-toggles,
+  [data-theme="dark"] .analytics-panel {
+    background: #1e1e24 !important; /* Solid dark background */
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
 }
 
 /* Glass effect for nav items and buttons in dark mode */
@@ -327,6 +354,12 @@ body {
     /* Base dark gradient */
     linear-gradient(180deg, #0a0a12 0%, #0f0f18 50%, #0a0a0f 100%);
   background-attachment: fixed;
+}
+
+@media (max-width: 768px) {
+  [data-theme="dark"] body {
+    background-attachment: scroll; /* Performance fix for mobile scrolling */
+  }
 }
 
 /* ===== App Layout ===== */

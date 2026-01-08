@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { ProgressRing } from './ProgressBar';
-import { Subject, SubjectData, PlannerTask, StudySession, MockScore } from '../types';
-import { TaskLog } from './TaskLog';
-import { DatePickerModal } from './DatePickerModal';
+import { ProgressRing } from '../../../shared/components/ui/ProgressBar';
+import { Subject, SubjectData, PlannerTask, StudySession, MockScore } from '../../../shared/types';
+import { TaskLog } from '../../planner/components/TaskLog';
+import { DatePickerModal } from '../../../shared/components/ui/DatePickerModal';
 import { AnalyticsPanels } from './AnalyticsPanels';
 import { Atom, FlaskConical, Calculator, Zap, Calendar, Check } from 'lucide-react';
-import { formatDateLocal, formatTime12Hour } from '../utils/date';
+import { formatDateLocal, formatTime12Hour } from '../../../shared/utils/date';
 
 interface DashboardProps {
     physicsProgress: number;

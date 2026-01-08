@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { formatDateLocal } from '../utils/date';
+import { formatDateLocal } from '../../utils/date.ts';
 
 interface DatePickerModalProps {
     isOpen: boolean;

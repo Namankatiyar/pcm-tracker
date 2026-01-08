@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Play, Pause, Square, Trash2, Clock, X, Pencil } from 'lucide-react';
-import { Subject, SubjectData, StudySession, PlannerTask } from '../types';
-import { CustomSelect } from './CustomSelect';
+import { Subject, SubjectData, StudySession, PlannerTask } from '../../../shared/types';
+import { CustomSelect } from '../../../shared/components/ui/CustomSelect';
 
 interface StudyClockProps {
     subjectData: Record<Subject, SubjectData | null>;

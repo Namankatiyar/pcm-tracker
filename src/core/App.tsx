@@ -1,16 +1,17 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Header } from './components/Header';
-import { Dashboard } from './components/Dashboard';
-import { SubjectPage } from './components/SubjectPage';
-import { Planner } from './components/Planner';
-import { StudyClock } from './components/StudyClock';
-import { useLocalStorage } from './hooks/useLocalStorage';
-import { useProgress } from './hooks/useProgress';
-import { parseSubjectCSV } from './utils/csvParser';
-import { formatDateLocal } from './utils/date';
-import { triggerSmallConfetti } from './utils/confetti';
-import { AppProgress, Subject, SubjectData, Priority, PlannerTask, StudySession, MockScore } from './types';
-import quotes from './quotes.json';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { Header } from '../shared/components/layout/Header';
+import { Dashboard } from '../features/dashboard/components/Dashboard';
+import { SubjectPage } from '../features/subjects/components/SubjectPage';
+import { Planner } from '../features/planner/components/Planner';
+import { StudyClock } from '../features/study-clock/components/StudyClock';
+import { useLocalStorage } from '../shared/hooks/useLocalStorage';
+import { useProgress } from '../shared/hooks/useProgress';
+import { parseSubjectCSV } from '../shared/utils/csvParser';
+import { formatDateLocal } from '../shared/utils/date';
+import { triggerSmallConfetti } from '../shared/utils/confetti';
+import { AppProgress, Subject, SubjectData, Priority, PlannerTask, StudySession, MockScore } from '../shared/types';
+import quotes from '../quotes.json';
 
 type View = 'dashboard' | 'planner' | 'studyclock' | Subject;
 
@@ -21,8 +22,25 @@ const initialProgress: AppProgress = {
 };
 
 function App() {
+    const navigate = useNavigate();
+    const location = useLocation();
+    
+    // Determine current view from path
+    const getCurrentView = (): View => {
+        const path = location.pathname.substring(1);
+        if (!path) return 'dashboard';
+        return path as View;
+    };
+    
+    const currentView = getCurrentView();
+
+    const handleNavigate = (view: View) => {
+        if (view === 'dashboard') navigate('/');
+        else navigate(`/${view}`);
+    };
+
     const [theme, setTheme] = useLocalStorage<'light' | 'dark'>('jee-tracker-theme', 'dark');
-    const [currentView, setCurrentView] = useLocalStorage<View>('jee-tracker-view', 'dashboard');
+    // const [currentView, setCurrentView] = useLocalStorage<View>('jee-tracker-view', 'dashboard'); // Replaced by Router
     const [progress, setProgress] = useLocalStorage<AppProgress>('jee-tracker-progress', initialProgress);
     const [accentColor, setAccentColor] = useLocalStorage<string>('jee-tracker-accent', '#6366f1');
     const [examDate, setExamDate] = useLocalStorage<string>('jee-exam-date', '');
@@ -368,7 +386,7 @@ function App() {
 
     const handleQuickAddTask = () => {
         setPlannerDateToOpen(formatDateLocal(new Date()));
-        setCurrentView('planner');
+        navigate('/planner');
     };
 
     // Planner Handlers
@@ -454,92 +472,88 @@ function App() {
         setMockScores(prev => prev.filter(s => s.id !== id));
     };
 
-    const renderContent = () => {
-        if (currentView === 'dashboard') {
-            return (
-                <Dashboard
-                    physicsProgress={physicsProgress}
-                    chemistryProgress={chemistryProgress}
-                    mathsProgress={mathsProgress}
-                    overallProgress={overallProgress}
-                    subjectData={mergedSubjectData}
-                    onNavigate={setCurrentView}
-                    quote={dailyQuote}
-                    plannerTasks={plannerTasks}
-                    onToggleTask={handleTogglePlannerTask}
-                    examDate={examDate}
-                    onExamDateChange={setExamDate}
-                    onQuickAdd={handleQuickAddTask}
-                    studySessions={studySessions}
-                    mockScores={mockScores}
-                    onAddMockScore={handleAddMockScore}
-                    onDeleteMockScore={handleDeleteMockScore}
-                />
-            );
-        }
-
-        if (currentView === 'planner') {
-            return (
-                <Planner
-                    tasks={plannerTasks}
-                    onAddTask={handleAddPlannerTask}
-                    onEditTask={handleEditPlannerTask}
-                    onToggleTask={handleTogglePlannerTask}
-                    onDeleteTask={handleDeletePlannerTask}
-                    subjectData={mergedSubjectData}
-                    examDate={examDate}
-                    initialOpenDate={plannerDateToOpen}
-                    onConsumeInitialDate={() => setPlannerDateToOpen(null)}
-                    sessions={studySessions}
-                />
-            );
-        }
-
-        if (currentView === 'studyclock') {
-            return (
-                <StudyClock
-                    subjectData={mergedSubjectData}
-                    sessions={studySessions}
-                    onAddSession={handleAddStudySession}
-                    onDeleteSession={handleDeleteStudySession}
-                    onEditSession={handleEditStudySession}
-                    plannerTasks={plannerTasks}
-                />
-            );
-        }
-
-        const subject = currentView as Subject;
-        return (
-            <SubjectPage
-                subject={subject}
-                data={mergedSubjectData[subject]}
-                progress={progress[subject]}
-                subjectProgress={calculateSubjectProgress(subject)}
-                onToggleMaterial={(serial, material) => handleToggleMaterial(subject, serial, material)}
-                onSetPriority={(serial, priority) => handleSetPriority(subject, serial, priority)}
-                onAddMaterial={(name) => handleAddColumn(subject, name)}
-                onRemoveMaterial={(name) => handleRemoveColumn(subject, name)}
-                onAddChapter={(name) => handleAddChapter(subject, name)}
-                onRemoveChapter={(serial) => handleRemoveChapter(subject, serial)}
-                onRenameChapter={(serial, name) => handleRenameChapter(subject, serial, name)}
-                onReorderChapters={(chapters) => handleReorderChapters(subject, chapters)}
-                onReorderMaterials={(materials) => handleReorderMaterials(subject, materials)}
-            />
-        );
-    };
-
     return (
         <div className="app">
             <Header
                 currentView={currentView}
-                onNavigate={setCurrentView}
+                onNavigate={handleNavigate}
                 theme={theme}
                 onThemeToggle={handleThemeToggle}
                 accentColor={accentColor}
                 onAccentChange={setAccentColor}
             />
             <main className="main-content">
-                {renderContent()}
+                <Routes>
+                    <Route path="/" element={
+                        <Dashboard
+                            physicsProgress={physicsProgress}
+                            chemistryProgress={chemistryProgress}
+                            mathsProgress={mathsProgress}
+                            overallProgress={overallProgress}
+                            subjectData={mergedSubjectData}
+                            onNavigate={handleNavigate}
+                            quote={dailyQuote}
+                            plannerTasks={plannerTasks}
+                            onToggleTask={handleTogglePlannerTask}
+                            examDate={examDate}
+                            onExamDateChange={setExamDate}
+                            onQuickAdd={handleQuickAddTask}
+                            studySessions={studySessions}
+                            mockScores={mockScores}
+                            onAddMockScore={handleAddMockScore}
+                            onDeleteMockScore={handleDeleteMockScore}
+                        />
+                    } />
+                    
+                    <Route path="/planner" element={
+                        <Planner
+                            tasks={plannerTasks}
+                            onAddTask={handleAddPlannerTask}
+                            onEditTask={handleEditPlannerTask}
+                            onToggleTask={handleTogglePlannerTask}
+                            onDeleteTask={handleDeletePlannerTask}
+                            subjectData={mergedSubjectData}
+                            examDate={examDate}
+                            initialOpenDate={plannerDateToOpen}
+                            onConsumeInitialDate={() => setPlannerDateToOpen(null)}
+                            sessions={studySessions}
+                        />
+                    } />
+
+                    <Route path="/studyclock" element={
+                        <StudyClock
+                            subjectData={mergedSubjectData}
+                            sessions={studySessions}
+                            onAddSession={handleAddStudySession}
+                            onDeleteSession={handleDeleteStudySession}
+                            onEditSession={handleEditStudySession}
+                            plannerTasks={plannerTasks}
+                        />
+                    } />
+
+                    {/* Subject Routes */}
+                    {(['physics', 'chemistry', 'maths'] as Subject[]).map(subject => (
+                        <Route key={subject} path={`/${subject}`} element={
+                            <SubjectPage
+                                subject={subject}
+                                data={mergedSubjectData[subject]}
+                                progress={progress[subject]}
+                                subjectProgress={calculateSubjectProgress(subject)}
+                                onToggleMaterial={(serial, material) => handleToggleMaterial(subject, serial, material)}
+                                onSetPriority={(serial, priority) => handleSetPriority(subject, serial, priority)}
+                                onAddMaterial={(name) => handleAddColumn(subject, name)}
+                                onRemoveMaterial={(name) => handleRemoveColumn(subject, name)}
+                                onAddChapter={(name) => handleAddChapter(subject, name)}
+                                onRemoveChapter={(serial) => handleRemoveChapter(subject, serial)}
+                                onRenameChapter={(serial, name) => handleRenameChapter(subject, serial, name)}
+                                onReorderChapters={(chapters) => handleReorderChapters(subject, chapters)}
+                                onReorderMaterials={(materials) => handleReorderMaterials(subject, materials)}
+                            />
+                        } />
+                    ))}
+
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
             </main>
 
         </div>

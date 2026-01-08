@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Subject } from '../types';
+import { Subject } from '../../types';
 import { LayoutDashboard, Atom, FlaskConical, Calculator, Sun, Moon, Palette, Settings, Calendar, Clock, Menu } from 'lucide-react';
-import { SettingsModal } from './SettingsModal';
-import { ColorPickerModal } from './ColorPickerModal';
+import { SettingsModal } from '../ui/SettingsModal';
+import { ColorPickerModal } from '../ui/ColorPickerModal';
 
 interface HeaderProps {
     currentView: 'dashboard' | 'planner' | 'studyclock' | Subject;

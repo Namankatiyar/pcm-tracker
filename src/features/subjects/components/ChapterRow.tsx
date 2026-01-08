@@ -1,5 +1,5 @@
-import { Chapter, ChapterProgress, Priority } from '../types';
-import { PrioritySelector } from './PrioritySelector';
+import { Chapter, ChapterProgress, Priority } from '../../../shared/types';
+import { PrioritySelector } from '../../../shared/components/ui/PrioritySelector';
 import { Trash2, GripVertical } from 'lucide-react';
 
 interface ChapterRowProps {

@@ -1,4 +1,4 @@
-import { PlannerTask } from '../types';
+import { PlannerTask } from '../../../shared/types';
 import { History, CheckCircle2 } from 'lucide-react';
 
 interface TaskLogProps {

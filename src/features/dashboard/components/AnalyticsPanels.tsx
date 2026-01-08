@@ -13,8 +13,8 @@ import {
     ArcElement
 } from 'chart.js';
 import { Bar, Line } from 'react-chartjs-2';
-import { StudySession, MockScore } from '../types';
-import { formatDateLocal } from '../utils/date';
+import { StudySession, MockScore } from '../../../shared/types';
+import { formatDateLocal } from '../../../shared/utils/date';
 import { Plus, TrendingUp, Clock, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 
 // Register Chart.js components

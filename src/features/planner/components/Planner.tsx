@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Plus, Check, Trash2, Calendar as CalendarIcon, Clock, Pencil, ClockAlert, Hourglass } from 'lucide-react';
-import { PlannerTask, Subject, SubjectData, StudySession } from '../types';
+import { PlannerTask, Subject, SubjectData, StudySession } from '../../../shared/types';
 import { TaskModal } from './TaskModal';
-import { formatDateLocal, formatTime12Hour } from '../utils/date';
+import { formatDateLocal, formatTime12Hour } from '../../../shared/utils/date';
 
 interface PlannerProps {
     tasks: PlannerTask[];

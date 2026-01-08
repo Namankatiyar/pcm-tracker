@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
-import { Subject, SubjectData, SubjectProgress, Priority, Chapter } from '../types';
+import { Subject, SubjectData, SubjectProgress, Priority, Chapter } from '../../../shared/types';
 import { ChapterRow } from './ChapterRow';
-import { ProgressBar } from './ProgressBar';
-import { ConfirmationModal } from './ConfirmationModal';
-import { InputModal } from './InputModal';
-import { triggerConfetti } from '../utils/confetti';
+import { ProgressBar } from '../../../shared/components/ui/ProgressBar';
+import { ConfirmationModal } from '../../../shared/components/ui/ConfirmationModal';
+import { InputModal } from '../../../shared/components/ui/InputModal';
+import { triggerConfetti } from '../../../shared/utils/confetti';
 import { Atom, FlaskConical, Calculator, Plus, X as XIcon, Pencil, Check, Filter } from 'lucide-react';
-import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useLocalStorage } from '../../../shared/hooks/useLocalStorage';
 
 interface SubjectPageProps {
     subject: Subject;
